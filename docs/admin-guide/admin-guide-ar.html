@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>دليل المدير — مشاوير المنية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  :root {
+    --ink: #1d1d1f; --muted: #5b6270; --line: #e4e6ea; --soft: #f6f7f9;
+    --brand: #ffb300; --brand-soft: #fff6dc; --brand-ink: #7a5200;
+    --ok: #138a52; --ok-soft: #e7f6ee; --warn: #b54708; --warn-soft: #fff1e6;
+    --info: #1c5fb8; --info-soft: #e8f0fb; --bad: #c5221f; --bad-soft: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; color: var(--ink); }
+  body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; font-size: 11pt; line-height: 1.7; }
+  h1, h2, h3 { line-height: 1.35; margin: 0; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 10px; padding-inline-start: 22px; }
+  li { margin-bottom: 3px; }
+
+  /* English words as they appear on screen */
+  .ui { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-weight: 600; font-size: 0.86em;
+        background: var(--soft); border: 1px solid var(--line); border-radius: 5px; padding: 0 6px;
+        white-space: nowrap; unicode-bidi: isolate; direction: ltr; display: inline-block; line-height: 1.6; }
+  .ui.green { background: var(--ok-soft); border-color: #bfe5d0; color: var(--ok); }
+  .ui.red { background: var(--bad-soft); border-color: #f5c2bf; color: var(--bad); }
+  .ui.yellow { background: var(--brand-soft); border-color: #f4dc97; color: var(--brand-ink); }
+  .ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+  /* Cover */
+  .cover { height: 258mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; }
+  .cover-top { background: var(--brand); border-radius: 18px; padding: 34mm 14mm 22mm; position: relative; overflow: hidden; }
+  .cover-top:after { content: ""; position: absolute; left: -30mm; bottom: -40mm; width: 110mm; height: 110mm; border-radius: 50%; background: rgba(255,255,255,.18); }
+  .cover .tag { display: inline-block; background: #1d1d1f; color: #fff; font-weight: 700; border-radius: 30px; padding: 2px 16px; font-size: 11pt; }
+  .cover h1 { font-size: 40pt; font-weight: 800; margin-top: 10mm; }
+  .cover .en { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15pt; opacity: .8; direction: ltr; text-align: right; }
+  .cover .sub { font-size: 15pt; margin-top: 6mm; max-width: 135mm; font-weight: 600; }
+  .cover-bottom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .cover-bottom div { border: 1px solid var(--line); border-radius: 12px; padding: 5mm; }
+  .cover-bottom b { display: block; font-size: 12pt; }
+  .cover-bottom span { color: var(--muted); font-size: 10pt; }
+  .cover .meta { color: var(--muted); font-size: 10pt; margin-top: 6mm; }
+
+  /* Sections */
+  section.chapter { page-break-before: always; }
+  .chap-head { display: flex; align-items: center; gap: 12px; border-bottom: 3px solid var(--brand); padding-bottom: 8px; margin-bottom: 14px; }
+  .chap-num { background: var(--brand); color: #1d1d1f; font-weight: 800; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 18pt; flex: none; }
+  .chap-head h2 { font-size: 20pt; font-weight: 800; }
+  .chap-head .ui { font-size: 11pt; margin-inline-start: 6px; }
+  h3 { font-size: 13.5pt; font-weight: 800; margin: 16px 0 6px; }
+  .lead { font-size: 12pt; color: #333; }
+
+  /* Screenshots */
+  figure { margin: 10px 0 14px; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 92mm; width: auto; margin: 0 auto; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.06); display: block; }
+  figure.half img { max-height: 70mm; }
+  figure.tall img { max-height: 150mm; }
+  figcaption { color: var(--muted); font-size: 9.5pt; margin-top: 4px; text-align: center; }
+
+  /* Boxes */
+  .box { border-radius: 10px; padding: 9px 13px; margin: 10px 0; break-inside: avoid; border-inline-start: 5px solid; }
+  .box b.t { display: block; margin-bottom: 2px; }
+  .tip { background: var(--ok-soft); border-color: var(--ok); }
+  .tip b.t { color: var(--ok); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .warn b.t { color: var(--warn); }
+  .info { background: var(--info-soft); border-color: var(--info); }
+  .info b.t { color: var(--info); }
+
+  /* Steps */
+  ol.steps { list-style: none; padding: 0; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding-inline-start: 38px; margin-bottom: 8px; break-inside: avoid; }
+  ol.steps > li:before { content: counter(s); position: absolute; right: 0; top: 2px; width: 26px; height: 26px; border-radius: 50%;
+     background: #1d1d1f; color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 10.5pt; line-height: 1; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 10.5pt; break-inside: auto; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: right; vertical-align: top; }
+  th { background: var(--soft); font-weight: 800; }
+  tr { break-inside: avoid; }
+
+  /* Flow diagram */
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 12px 0 16px; break-inside: avoid; }
+  .flow .st { flex: 1; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px; text-align: center; background: #fff; font-size: 10pt; }
+  .flow .st b { display: block; font-size: 10.5pt; }
+  .flow .st .ui { font-size: 8pt; margin-top: 3px; }
+  .flow .ar { width: 22px; display: grid; place-items: center; color: var(--muted); font-size: 16pt; flex: none; }
+  .flow .st.hl { border-color: var(--brand); background: var(--brand-soft); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; break-inside: avoid; }
+  .card h4 { margin: 0 0 4px; font-size: 11.5pt; }
+
+  .toc { columns: 2; column-gap: 12mm; }
+  .toc a { color: inherit; text-decoration: none; display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px dotted #ccc; break-inside: avoid; }
+  .toc a span.n { font-weight: 800; color: var(--brand-ink); min-width: 22px; }
+
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding-inline-start: 28px; position: relative; }
+  .checklist li:before { content: ""; position: absolute; right: 0; top: 6px; width: 15px; height: 15px; border: 2px solid #1d1d1f; border-radius: 4px; }
+
+  .money { direction: ltr; unicode-bidi: isolate; display: inline-block; font-weight: 700; }
+  .plus { color: var(--bad); } .minus { color: var(--ok); }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="cover-top">
+    <span class="tag">دليل المدير</span>
+    <h1>مشاوير المنية</h1>
+    <div class="en">Minieh Rides — Admin Guide</div>
+    <p class="sub">شرح سهل وخطوة بخطوة لكل ما تحتاجه لإدارة التطبيق: السائقون، أصحاب السيارات، المشاوير، الإيجار، الأسعار، والحسابات.</p>
+  </div>
+  <div>
+    <div class="cover-bottom">
+      <div><b>🚕 تاكسي وتوك توك</b><span>مشاوير بسعر ثابت أو محسوب</span></div>
+      <div><b>🚗 تأجير سيارات</b><span>مع سائق أو بدون سائق</span></div>
+      <div><b>💵 الحسابات</b><span>عمولة أو اشتراك شهري</span></div>
+    </div>
+    <p class="meta">الإصدار 1.0 · تشرين الثاني 2026 · الصور في هذا الدليل من بيانات تجريبية.</p>
+  </div>
+</div>
+
+<!-- ============ TOC ============ -->
+<section>
+  <div class="chap-head"><h2>المحتويات</h2></div>
+  <div class="toc">
+    <a href="#c1"><span class="n">1</span> كيف يعمل النظام؟</a>
+    <a href="#c2"><span class="n">2</span> الدخول والقائمة الرئيسية</a>
+    <a href="#c3"><span class="n">3</span> قبل الإطلاق: الإعداد الأول</a>
+    <a href="#c4"><span class="n">4</span> لوحة المعلومات</a>
+    <a href="#c5"><span class="n">5</span> السائقون</a>
+    <a href="#c6"><span class="n">6</span> أصحاب السيارات</a>
+    <a href="#c7"><span class="n">7</span> سيارات الإيجار وسيارات المنصّة</a>
+    <a href="#c8"><span class="n">8</span> المشاوير</a>
+    <a href="#c9"><span class="n">9</span> حجوزات الإيجار</a>
+    <a href="#c10"><span class="n">10</span> الأسعار</a>
+    <a href="#c11"><span class="n">11</span> الأماكن</a>
+    <a href="#c12"><span class="n">12</span> أسعار الخطوط الثابتة</a>
+    <a href="#c13"><span class="n">13</span> الحسابات المالية</a>
+    <a href="#c14"><span class="n">14</span> المستخدمون</a>
+    <a href="#c15"><span class="n">15</span> الإعدادات</a>
+    <a href="#c16"><span class="n">16</span> المهام اليومية والأسبوعية والشهرية</a>
+    <a href="#c17"><span class="n">17</span> مشاكل شائعة وحلولها</a>
+    <a href="#c18"><span class="n">18</span> قاموس الكلمات</a>
+  </div>
+
+  <div class="box info" style="margin-top:14mm">
+    <b class="t">كيف تقرأ هذا الدليل؟</b>
+    لوحة التحكم مكتوبة بالإنكليزية، لذلك كل زر أو كلمة تظهر على الشاشة مكتوبة في هذا الدليل بهذا الشكل:
+    <span class="ui">Approve</span> — حتى تجدها بسهولة. الشرح بجانبها بالعربي.
+  </div>
+  <div class="box tip">
+    <b class="t">إذا كان وقتك ضيقاً</b>
+    اقرأ الفصل 1 (كيف يعمل النظام)، والفصل 3 (الإعداد الأول)، والفصل 16 (المهام اليومية). هذا يكفي للبدء.
+  </div>
+</section>
+
+<!-- ============ 1 ============ -->
+<section class="chapter" id="c1">
+  <div class="chap-head"><div class="chap-num">1</div><h2>كيف يعمل النظام؟</h2></div>
+  <p class="lead">النظام مؤلف من ثلاثة أجزاء تعمل معاً:</p>
+  <div class="grid2" style="grid-template-columns: 1fr 1fr 1fr">
+    <div class="card"><h4>📱 تطبيق الموبايل</h4>تطبيق واحد للجميع. كل شخص يسجّل كـ <b>راكب</b>، ويستطيع أن يطلب أن يصبح <b>سائقاً</b> أو <b>صاحب سيارة للإيجار</b>.</div>
+    <div class="card"><h4>🖥️ لوحة التحكم</h4>هذا ما تستخدمه أنت كمدير: الموافقة على السائقين، الأسعار، الحسابات، والمراقبة.</div>
+    <div class="card"><h4>⚙️ الخادم (السيرفر)</h4>يحفظ كل البيانات ويربط الركاب بالسائقين. لا تحتاج للتعامل معه مباشرة.</div>
+  </div>
+
+  <h3>رحلة المشوار من البداية للنهاية</h3>
+  <div class="flow">
+    <div class="st"><b>الراكب يطلب</b>يختار الوجهة ويرى السعر قبل الطلب</div><div class="ar">←</div>
+    <div class="st"><b>السائقون القريبون</b>يصلهم الطلب على هواتفهم</div><div class="ar">←</div>
+    <div class="st"><b>أول سائق يقبل</b>يأخذ المشوار</div><div class="ar">←</div>
+    <div class="st"><b>وصل · بدأ · انتهى</b>الراكب يرى السائق على الخريطة</div><div class="ar">←</div>
+    <div class="st hl"><b>الدفع نقداً</b>الراكب يدفع للسائق مباشرة</div>
+  </div>
+
+  <h3>كيف تربح المنصّة؟</h3>
+  <p>الراكب يدفع للسائق <b>نقداً</b>. لذلك المنصّة لا تستلم المال من الراكب، بل <b>السائق يصبح مديناً للمنصّة</b>. كل سائق يختار عند التسجيل واحدة من خطتين:</p>
+  <table>
+    <tr><th style="width:25%">الخطة</th><th>كيف تعمل</th><th style="width:30%">مثال</th></tr>
+    <tr><td><b>عمولة</b> <span class="ui">COMMISSION</span></td><td>بعد كل مشوار مكتمل، تُضاف نسبة من الأجرة على حساب السائق (دَين عليه).</td><td>مشوار بـ <span class="money">$5</span> وعمولة 10% ← السائق مدين بـ <span class="money">$0.50</span></td></tr>
+    <tr><td><b>اشتراك شهري</b> <span class="ui">MONTHLY</span></td><td>السائق يدفع مبلغاً ثابتاً كل شهر ويأخذ كل أجرة المشاوير. لا يستطيع العمل إلا إذا كان اشتراكه فعّالاً.</td><td>تاكسي <span class="money">$30</span> بالشهر، توك توك <span class="money">$15</span></td></tr>
+  </table>
+  <p>أصحاب سيارات الإيجار يدفعون <b>عمولة إيجار</b> على كل حجز مكتمل (إلا سيارات المنصّة نفسها).</p>
+  <div class="box warn"><b class="t">مهم</b>السائق يدفع لك (نقداً، Whish، OMT…) خارج التطبيق. أنت تسجّل هذه الدفعة في صفحة <span class="ui">Billing</span> حتى يُخصم الدَين من حسابه. إذا تجاوز دَين السائق الحدّ الأقصى، لن يستطيع استقبال مشاوير حتى يدفع.</div>
+
+  <h3>رحلة الإيجار</h3>
+  <div class="flow">
+    <div class="st"><b>صاحب السيارة</b>يضيف سيارته</div><div class="ar">←</div>
+    <div class="st"><b>أنت توافق</b>على السيارة<br><span class="ui">Approve</span></div><div class="ar">←</div>
+    <div class="st"><b>الزبون يحجز</b>يختار التواريخ</div><div class="ar">←</div>
+    <div class="st"><b>صاحب السيارة يؤكد</b>ثم يسلّم السيارة</div><div class="ar">←</div>
+    <div class="st hl"><b>إرجاع السيارة</b>تُحسب العمولة</div>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="chapter" id="c2">
+  <div class="chap-head"><div class="chap-num">2</div><h2>الدخول والقائمة الرئيسية</h2></div>
+  <h3>تسجيل الدخول</h3>
+  <ol class="steps">
+    <li>افتح رابط لوحة التحكم في المتصفح (Chrome أو Edge).</li>
+    <li>اكتب رقم الهاتف في خانة <span class="ui">Phone</span> (مثلاً <span class="ltr">70000000</span>) وكلمة السر في <span class="ui">Password</span>.</li>
+    <li>اضغط <span class="ui yellow">Sign in</span>.</li>
+  </ol>
+  <figure class="half"><img src="img/01-login.png"><figcaption>شاشة الدخول</figcaption></figure>
+  <div class="box warn"><b class="t">الأمان</b>فقط حسابات المدير تستطيع الدخول. لا تعطِ كلمة السر لأحد، واضغط <span class="ui">Log out</span> (أعلى الشاشة) عند استخدام كمبيوتر مشترك.</div>
+
+  <h3>القائمة الجانبية</h3>
+  <table>
+    <tr><th style="width:24%">على الشاشة</th><th style="width:22%">المعنى</th><th>ماذا تفعل هنا؟</th></tr>
+    <tr><td><span class="ui">Dashboard</span></td><td>لوحة المعلومات</td><td>نظرة سريعة على اليوم: مشاوير، طلبات تنتظر الموافقة، ديون.</td></tr>
+    <tr><td><span class="ui">Drivers</span></td><td>السائقون</td><td>قبول أو رفض أو إيقاف السائقين ومراجعة أوراقهم.</td></tr>
+    <tr><td><span class="ui">Car owners</span></td><td>أصحاب السيارات</td><td>قبول أصحاب سيارات الإيجار (أفراد أو مكاتب).</td></tr>
+    <tr><td><span class="ui">Rental listings</span></td><td>سيارات الإيجار</td><td>الموافقة على السيارات المعروضة، وإضافة سيارات المنصّة.</td></tr>
+    <tr><td><span class="ui">Rides</span></td><td>المشاوير</td><td>متابعة كل المشاوير وإلغاء مشوار عالق.</td></tr>
+    <tr><td><span class="ui">Rental bookings</span></td><td>حجوزات الإيجار</td><td>متابعة الحجوزات، وإدارة حجوزات سيارات المنصّة.</td></tr>
+    <tr><td><span class="ui">Pricing</span></td><td>الأسعار</td><td>اختيار طريقة التسعير لكل نوع مركبة.</td></tr>
+    <tr><td><span class="ui">Places</span></td><td>الأماكن</td><td>البلدات والمناطق (المنية، طرابلس…).</td></tr>
+    <tr><td><span class="ui">Route fares</span></td><td>أسعار الخطوط</td><td>السعر الثابت بين مكانين (مثلاً المنية ← طرابلس).</td></tr>
+    <tr><td><span class="ui">Billing</span></td><td>الحسابات المالية</td><td>ديون السائقين، تسجيل الدفعات، تفعيل الاشتراك الشهري.</td></tr>
+    <tr><td><span class="ui">Users</span></td><td>المستخدمون</td><td>البحث عن أي مستخدم وحظره إذا لزم.</td></tr>
+    <tr><td><span class="ui">Settings</span></td><td>الإعدادات</td><td>نسب العمولة، سعر صرف الليرة، الحد الأقصى للدَين…</td></tr>
+  </table>
+  <div class="box tip"><b class="t">الحالات بالألوان</b>
+    <span class="ui yellow">PENDING</span> بانتظار مراجعتك ·
+    <span class="ui green">APPROVED</span> مقبول ·
+    <span class="ui red">REJECTED</span> مرفوض ·
+    <span class="ui">SUSPENDED</span> موقوف مؤقتاً.
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="chapter" id="c3">
+  <div class="chap-head"><div class="chap-num">3</div><h2>قبل الإطلاق: الإعداد الأول</h2></div>
+  <p class="lead">افعل هذه الخطوات مرة واحدة قبل أن تعلن عن التطبيق. الترتيب مهم.</p>
+  <ol class="steps">
+    <li><b>الإعدادات</b> (<span class="ui">Settings</span>): اكتب نسبة العمولة، رسوم الاشتراك الشهري، سعر صرف الدولار بالليرة، الحد الأقصى للدَين، ورقم هاتف الدعم. ← الفصل 15.</li>
+    <li><b>الأماكن</b> (<span class="ui">Places</span>): تأكد من مواقع البلدات الموجودة (المنية، دير عمار، البداوي، طرابلس…) وأضف الأحياء أو القرى التي تحتاجها. ← الفصل 11.</li>
+    <li><b>أسعار الخطوط</b> (<span class="ui">Route fares</span>): اكتب السعر الحقيقي المتعارف عليه في الشارع لكل خط، للتاكسي وللتوك توك. ← الفصل 12.</li>
+    <li><b>الأسعار</b> (<span class="ui">Pricing</span>): اختر <span class="ui">Fixed route</span> إذا تريد استعمال أسعار الخطوط، واكتب سعر الكيلومتر الاحتياطي للمشاوير خارج الخطوط. ← الفصل 10.</li>
+    <li><b>سيارات المنصّة</b> (اختياري): إذا عندك سيارات للإيجار تملكها أنت، أضفها من <span class="ui">Rental listings</span> ← <span class="ui">Platform cars</span>. ← الفصل 7.</li>
+    <li><b>جرّب بنفسك</b>: سجّل من هاتفك كراكب، ومن هاتف آخر كسائق، وافق على السائق، واطلب مشواراً تجريبياً حتى النهاية.</li>
+  </ol>
+  <div class="box warn"><b class="t">الأسعار التجريبية</b>الأسعار والمواقع الموجودة الآن في النظام هي أمثلة للبداية فقط. راجعها كلها قبل الإطلاق.</div>
+
+  <h3>قائمة تحقّق سريعة</h3>
+  <ul class="checklist">
+    <li>نسبة العمولة صحيحة (<span class="ui">Ride commission</span>).</li>
+    <li>رسوم الاشتراك الشهري للتاكسي والتوك توك صحيحة.</li>
+    <li>سعر صرف الليرة محدَّث (<span class="ui">LBP rate</span>).</li>
+    <li>رقم الدعم صحيح (يظهر للركاب في التطبيق).</li>
+    <li>كل بلدة مهمة موجودة في <span class="ui">Places</span> وموقعها صحيح.</li>
+    <li>أسعار الخطوط الأساسية مكتوبة للتاكسي وللتوك توك.</li>
+    <li>جرّبت مشواراً كاملاً من الطلب حتى الدفع.</li>
+  </ul>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="chapter" id="c4">
+  <div class="chap-head"><div class="chap-num">4</div><h2>لوحة المعلومات</h2><span class="ui">Dashboard</span></div>
+  <p>أول صفحة تراها بعد الدخول. تتحدّث وحدها كل دقيقة. اضغط على أي بطاقة لتذهب إلى صفحتها.</p>
+  <figure><img src="img/02-dashboard.png"><figcaption>لوحة المعلومات</figcaption></figure>
+  <table>
+    <tr><th style="width:30%">البطاقة</th><th>معناها</th></tr>
+    <tr><td><span class="ui">RIDES TODAY</span></td><td>عدد المشاوير المطلوبة اليوم، وتحتها عدد المكتملة.</td></tr>
+    <tr><td><span class="ui">REVENUE TODAY</span></td><td>مجموع أجرة المشاوير المكتملة اليوم (المال الذي دفعه الركاب للسائقين، وليس ربح المنصّة).</td></tr>
+    <tr><td><span class="ui">DRIVERS</span></td><td>عدد السائقين، وكم منهم متصل الآن (<span class="ui">online</span>) ويستقبل مشاوير.</td></tr>
+    <tr><td><span class="ui">DRIVERS PENDING</span></td><td>سائقون سجّلوا وينتظرون موافقتك. <b>راجعها يومياً.</b></td></tr>
+    <tr><td><span class="ui">OWNERS PENDING</span></td><td>أصحاب سيارات إيجار ينتظرون الموافقة.</td></tr>
+    <tr><td><span class="ui">LISTINGS PENDING</span></td><td>سيارات إيجار جديدة تنتظر الموافقة قبل أن تظهر للزبائن.</td></tr>
+    <tr><td><span class="ui">BOOKINGS</span></td><td>حجوزات الإيجار الجارية الآن، والحجوزات التي تنتظر تأكيد صاحب السيارة.</td></tr>
+    <tr><td><span class="ui">OUTSTANDING DEBT</span></td><td>مجموع ما يدين به السائقون وأصحاب السيارات للمنصّة.</td></tr>
+    <tr><td><span class="ui">USERS</span></td><td>عدد كل الحسابات المسجّلة.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="chapter" id="c5">
+  <div class="chap-head"><div class="chap-num">5</div><h2>السائقون</h2><span class="ui">Drivers</span></div>
+  <p class="lead">السائق يسجّل بنفسه من التطبيق: يكتب معلومات المركبة، يختار خطته (عمولة أو شهري)، ويرفع صور أوراقه. بعدها يظهر عندك بحالة <span class="ui yellow">PENDING</span> ولا يستطيع العمل حتى توافق.</p>
+  <figure><img src="img/03-drivers-pending.png"><figcaption>قائمة السائقين — الصفحة تفتح على السائقين بانتظار الموافقة</figcaption></figure>
+  <p>في أعلى الصفحة أزرار للتصفية: <span class="ui">All</span> الكل، <span class="ui">Pending</span> بالانتظار، <span class="ui">Approved</span> مقبول، <span class="ui">Rejected</span> مرفوض، <span class="ui">Suspended</span> موقوف. ويمكنك البحث بالاسم أو الهاتف أو رقم اللوحة.</p>
+
+  <h3>كيف توافق على سائق جديد</h3>
+  <ol class="steps">
+    <li>اضغط على اسم السائق. تفتح لوحة على الجانب فيها كل التفاصيل.</li>
+    <li>راجع <b>معلومات المركبة</b> (<span class="ui">Vehicle</span>): النوع، الماركة، اللون، رقم اللوحة.</li>
+    <li>انزل إلى <b>الأوراق</b> (<span class="ui">Documents</span>) واضغط على كل صورة لتكبيرها.</li>
+    <li>إذا كان كل شيء صحيحاً اضغط <span class="ui green">Approve</span>. السائق يصله إشعار فوراً ويستطيع العمل.</li>
+    <li>إذا في مشكلة اضغط <span class="ui red">Reject</span> واكتب السبب بوضوح (مثلاً: "صورة الرخصة غير واضحة"). السائق يرى السبب ويستطيع التقديم من جديد.</li>
+  </ol>
+  <figure><img src="img/04-driver-detail.png"><figcaption>تفاصيل السائق مع زرّي الموافقة والرفض</figcaption></figure>
+
+  <div class="box info avoid"><b class="t">ماذا تتحقّق في الأوراق؟</b>
+    <ul style="margin:0">
+      <li><b>الهوية</b> (<span class="ui">ID CARD</span>): الاسم يطابق الاسم في التطبيق.</li>
+      <li><b>رخصة القيادة</b> (<span class="ui">DRIVER LICENSE</span>): غير منتهية، ورقمها يطابق رقم الرخصة المكتوب.</li>
+      <li><b>دفتر السيارة</b> (<span class="ui">CAR REGISTRATION</span>): رقم اللوحة يطابق، وللتاكسي يجب أن تكون لوحة عمومية.</li>
+      <li><b>التأمين</b> (<span class="ui">INSURANCE</span>): ساري المفعول.</li>
+      <li><b>صورة المركبة</b> (<span class="ui">VEHICLE PHOTO</span>): نفس اللون والنوع.</li>
+    </ul>
+  </div>
+
+  <h3>إيقاف سائق أو إعادة تفعيله</h3>
+  <p>إذا وصلتك شكاوى عن سائق مقبول، افتحه واضغط <span class="ui red">Suspend</span> واكتب السبب. يتم فصله فوراً ولا يستطيع استقبال مشاوير. لإرجاعه اضغط <span class="ui green">Reactivate</span>.</p>
+  <table>
+    <tr><th>الحالة الآن</th><th>الأزرار المتاحة</th></tr>
+    <tr><td><span class="ui yellow">PENDING</span> بالانتظار</td><td><span class="ui">Approve</span> قبول · <span class="ui">Reject</span> رفض</td></tr>
+    <tr><td><span class="ui green">APPROVED</span> مقبول</td><td><span class="ui">Suspend</span> إيقاف</td></tr>
+    <tr><td><span class="ui">SUSPENDED</span> موقوف</td><td><span class="ui">Reactivate</span> إعادة تفعيل</td></tr>
+    <tr><td><span class="ui red">REJECTED</span> مرفوض</td><td><span class="ui">Approve</span> (إذا غيّرت رأيك) — أو ينتظر أن يقدّم السائق من جديد</td></tr>
+  </table>
+  <div class="box tip"><b class="t">معلومة</b>في لوحة السائق ترى أيضاً خطته (<span class="ui">PLAN</span>)، دَينه (<span class="ui">BALANCE (OWED)</span>)، اشتراكه الشهري، ورابط <span class="ui">Open billing account</span> لفتح حسابه المالي مباشرة.</div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="chapter" id="c6">
+  <div class="chap-head"><div class="chap-num">6</div><h2>أصحاب السيارات</h2><span class="ui">Car owners</span></div>
+  <p class="lead">أي مستخدم يريد أن يؤجّر سيارته يقدّم طلباً من التطبيق كـ <b>فرد</b> (<span class="ui">INDIVIDUAL</span>) أو <b>مكتب تأجير</b> (<span class="ui">AGENCY</span>) مع اسم المكتب، ويرفع أوراقه.</p>
+  <figure><img src="img/05-owners.png"><figcaption>قائمة أصحاب السيارات</figcaption></figure>
+  <ol class="steps">
+    <li>اضغط على الاسم لفتح التفاصيل والأوراق (الهوية، سجل تجاري للمكاتب).</li>
+    <li>اضغط <span class="ui green">Approve</span> للموافقة، أو <span class="ui red">Reject</span> مع كتابة السبب.</li>
+    <li>بعد الموافقة يستطيع صاحب السيارة إضافة سياراته من التطبيق. كل سيارة تحتاج موافقتك أيضاً (الفصل 7).</li>
+  </ol>
+  <figure><img src="img/06-owner-detail.png"><figcaption>تفاصيل مكتب تأجير بانتظار الموافقة</figcaption></figure>
+  <div class="box info"><b class="t">الموافقة على صاحب السيارة ≠ الموافقة على سياراته</b>الموافقة هنا تعني أنك تثق بالشخص أو المكتب. كل سيارة يضيفها تمرّ بمراجعة منفصلة.</div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="chapter" id="c7">
+  <div class="chap-head"><div class="chap-num">7</div><h2>سيارات الإيجار وسيارات المنصّة</h2><span class="ui">Rental listings</span></div>
+  <p>الصفحة فيها تبويبان: <span class="ui">All listings</span> لكل السيارات، و<span class="ui">Platform cars</span> لسياراتك أنت.</p>
+  <figure><img src="img/07-listings.png"><figcaption>كل السيارات المعروضة للإيجار</figcaption></figure>
+
+  <h3>الموافقة على سيارة</h3>
+  <ol class="steps">
+    <li>اختر <span class="ui">Pending</span> لترى السيارات الجديدة.</li>
+    <li>اضغط على السيارة. راجع الصور، السنة، عدد المقاعد، السعر اليومي، والتأمين (<span class="ui">Deposit</span>).</li>
+    <li>اضغط <span class="ui green">Approve</span> فتظهر السيارة للزبائن فوراً، أو <span class="ui red">Reject</span> مع السبب (مثلاً: "الصور غير واضحة" أو "السعر غير منطقي").</li>
+  </ol>
+  <figure><img src="img/08-listing-detail.png"><figcaption>تفاصيل سيارة بانتظار الموافقة</figcaption></figure>
+  <div class="box warn"><b class="t">تنبيه</b>إذا غيّر صاحب السيارة <b>الماركة أو الموديل أو السنة أو الوصف</b> لسيارة مقبولة، ترجع السيارة إلى <span class="ui yellow">PENDING</span> وتحتاج موافقتك من جديد. تغيير السعر أو إخفاء السيارة لا يحتاج موافقة.</div>
+
+  <h3>سيارات المنصّة (سياراتك أنت)</h3>
+  <p>إذا كانت الشركة تملك سيارات للإيجار، أضفها من هنا. سيارات المنصّة <b>تُقبل تلقائياً</b> ولا يُحسب عليها عمولة.</p>
+  <figure><img src="img/09-platform-cars.png"><figcaption>تبويب سيارات المنصّة</figcaption></figure>
+  <ol class="steps">
+    <li>اضغط <span class="ui yellow">Add car</span>.</li>
+    <li>املأ: الماركة <span class="ui">Make</span>، الموديل <span class="ui">Model</span>، السنة <span class="ui">Year</span>، المقاعد <span class="ui">Seats</span>، اللون <span class="ui">Color</span>، ناقل الحركة <span class="ui">Transmission</span>، الوقود <span class="ui">Fuel</span>، ومكان السيارة <span class="ui">Location (place)</span>.</li>
+    <li>اختر طريقة الإيجار: <span class="ui">Self-drive available</span> (الزبون يقود بنفسه) و/أو <span class="ui">With driver available</span> (مع سائق)، واكتب السعر اليومي لكل واحدة.</li>
+    <li>اكتب التأمين <span class="ui">Deposit</span> (يُدفع باليد عند الاستلام) وأقل عدد أيام <span class="ui">Minimum days</span>.</li>
+    <li>اضغط <span class="ui yellow">Create car</span>، ثم افتح السيارة وأضف صورها (حتى 6 صور).</li>
+  </ol>
+  <figure><img src="img/10-platform-car-form.png"><figcaption>نموذج إضافة سيارة للمنصّة</figcaption></figure>
+  <div class="box tip"><b class="t">إخفاء سيارة مؤقتاً</b>إذا كانت السيارة في التصليح، أوقف ظهورها بإلغاء <span class="ui">Active (visible to renters)</span> بدل حذفها. تبقى الحجوزات القديمة محفوظة.</div>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="chapter" id="c8">
+  <div class="chap-head"><div class="chap-num">8</div><h2>المشاوير</h2><span class="ui">Rides</span></div>
+  <p>هنا ترى كل مشاوير التاكسي والتوك توك، الأحدث أولاً. اضغط على أي مشوار لترى تفاصيله الكاملة.</p>
+  <figure><img src="img/11-rides.png"><figcaption>قائمة المشاوير</figcaption></figure>
+
+  <h3>معنى حالات المشوار</h3>
+  <table>
+    <tr><th style="width:28%">الحالة</th><th>المعنى</th></tr>
+    <tr><td><span class="ui">REQUESTED</span></td><td>الراكب طلب، والطلب أُرسل للسائقين القريبين، ولم يقبله أحد بعد.</td></tr>
+    <tr><td><span class="ui">ACCEPTED</span></td><td>سائق قبل المشوار وهو في الطريق إلى الراكب.</td></tr>
+    <tr><td><span class="ui">ARRIVED</span></td><td>السائق وصل إلى مكان الراكب.</td></tr>
+    <tr><td><span class="ui">IN PROGRESS</span></td><td>الراكب في السيارة والمشوار جارٍ.</td></tr>
+    <tr><td><span class="ui green">COMPLETED</span></td><td>انتهى المشوار ودفع الراكب نقداً. هنا تُحسب العمولة.</td></tr>
+    <tr><td><span class="ui red">CANCELLED</span></td><td>أُلغي من الراكب أو السائق أو منك.</td></tr>
+    <tr><td><span class="ui">EXPIRED</span></td><td>لم يقبل أي سائق خلال الوقت المحدد (الافتراضي 60 ثانية). يستطيع الراكب الطلب من جديد.</td></tr>
+  </table>
+  <figure><img src="img/12-ride-detail.png"><figcaption>تفاصيل مشوار جارٍ: المسار، الأجرة، الأشخاص، والتسلسل الزمني</figcaption></figure>
+
+  <h3>ماذا ترى في تفاصيل المشوار؟</h3>
+  <ul>
+    <li><b>نوع السعر</b>: <span class="ui">FIXED ROUTE</span> = سعر خط ثابت، <span class="ui">CALCULATED</span> = محسوب حسب المسافة.</li>
+    <li><b>الأجرة</b> بالدولار والليرة، و<b>العمولة</b> المسجّلة على السائق.</li>
+    <li><b>هاتف الراكب والسائق</b> — مفيد إذا اتصل بك أحدهما يشتكي.</li>
+    <li><b>التقييم</b> الذي أعطاه كل طرف للآخر.</li>
+    <li><b>التسلسل الزمني</b> <span class="ui">Timeline</span>: متى طُلب، قُبل، وصل السائق، بدأ وانتهى.</li>
+  </ul>
+
+  <h3>إلغاء مشوار عالق</h3>
+  <p>إذا اتصل بك راكب أو سائق وقال إن المشوار "عالق" (مثلاً السائق نسي أن يضغط إنهاء)، افتح المشوار واضغط <span class="ui red">Cancel ride</span> واكتب السبب. الطرفان يصلهما إشعار.</p>
+  <div class="box warn"><b class="t">انتبه</b>الإلغاء لا يحسب عمولة. إذا كان المشوار حصل فعلاً ودُفع، اطلب من السائق أن يضغط "إنهاء" في تطبيقه بدل أن تلغيه أنت.</div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="chapter" id="c9">
+  <div class="chap-head"><div class="chap-num">9</div><h2>حجوزات الإيجار</h2><span class="ui">Rental bookings</span></div>
+  <p>هنا ترى كل حجوزات سيارات الإيجار. صاحب كل سيارة هو من يؤكّد الحجز ويسلّم السيارة من تطبيقه. أنت تتدخّل فقط في <b>سيارات المنصّة</b> لأنك أنت صاحبها.</p>
+  <figure><img src="img/13-bookings.png"><figcaption>قائمة حجوزات الإيجار</figcaption></figure>
+
+  <h3>مراحل الحجز</h3>
+  <div class="flow">
+    <div class="st"><b>بانتظار التأكيد</b><span class="ui">PENDING</span></div><div class="ar">←</div>
+    <div class="st"><b>مؤكَّد</b><span class="ui">CONFIRMED</span></div><div class="ar">←</div>
+    <div class="st"><b>السيارة مع الزبون</b><span class="ui">ACTIVE</span></div><div class="ar">←</div>
+    <div class="st hl"><b>أُرجعت السيارة</b><span class="ui">COMPLETED</span></div>
+  </div>
+  <p>ممكن أيضاً: <span class="ui">REJECTED</span> رفضه صاحب السيارة، أو <span class="ui">CANCELLED</span> ألغاه الزبون (قبل استلام السيارة).</p>
+  <figure><img src="img/14-booking-detail.png"><figcaption>تفاصيل حجز: التواريخ، السعر، التأمين، الملاحظة، والأشخاص</figcaption></figure>
+
+  <h3>إدارة حجز على سيارة من سيارات المنصّة</h3>
+  <ol class="steps">
+    <li>افتح الحجز. يظهر قسم <span class="ui">Platform car — you are the owner</span> مع الأزرار.</li>
+    <li>اضغط <span class="ui green">Confirm</span> لتأكيد الحجز (أو <span class="ui red">Reject</span> إذا السيارة غير متاحة).</li>
+    <li>يوم التسليم: تحقّق من رخصة الزبون، خذ التأمين باليد، ثم اضغط <span class="ui">Car handed over (start)</span>.</li>
+    <li>عند إرجاع السيارة: افحصها، أرجع التأمين، واضغط <span class="ui green">Car returned (complete)</span>.</li>
+  </ol>
+  <div class="box info"><b class="t">مهم عن الإيجار</b>
+    <ul style="margin:0">
+      <li>تاريخ الإرجاع لا يُحسب يوماً: من 12 إلى 15 = 3 أيام.</li>
+      <li>الإيجار بدون سائق يحتاج أن يرفع الزبون صورة رخصة القيادة قبل الحجز — التطبيق يمنعه إن لم يفعل.</li>
+      <li>النظام يمنع حجزين لنفس السيارة في نفس الأيام.</li>
+      <li>التأمين <span class="ui">Deposit</span> يُدفع ويُرجع باليد، التطبيق يعرضه فقط.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="chapter" id="c10">
+  <div class="chap-head"><div class="chap-num">10</div><h2>الأسعار</h2><span class="ui">Pricing</span></div>
+  <p class="lead">لكل نوع مركبة (تاكسي، توك توك) تختار طريقة من اثنتين:</p>
+  <div class="grid2">
+    <div class="card"><h4>1) سعر ثابت للخطوط <span class="ui">Fixed route</span></h4>مثل الشارع تماماً: "من المنية لطرابلس 5 دولار". تكتب الأسعار في صفحة <span class="ui">Route fares</span>. <b>إذا لم يوجد سعر للخط</b>، يُحسب السعر تلقائياً بالطريقة الثانية.</div>
+    <div class="card"><h4>2) سعر محسوب <span class="ui">Calculated</span></h4>مثل أوبر: السعر حسب المسافة والوقت. يُطبّق على كل المشاوير ويتجاهل أسعار الخطوط.</div>
+  </div>
+  <figure><img src="img/15-pricing.png"><figcaption>صفحة الأسعار — بطاقة لكل نوع مركبة</figcaption></figure>
+
+  <h3>كيف يُحسب السعر المحسوب؟</h3>
+  <table>
+    <tr><th>الخانة</th><th>معناها</th></tr>
+    <tr><td><span class="ui">Base fare</span></td><td>فتحة العداد: مبلغ ثابت لكل مشوار.</td></tr>
+    <tr><td><span class="ui">Per km</span></td><td>سعر كل كيلومتر.</td></tr>
+    <tr><td><span class="ui">Per minute</span></td><td>سعر كل دقيقة من مدة المشوار.</td></tr>
+    <tr><td><span class="ui">Minimum fare</span></td><td>أقل سعر ممكن لأي مشوار مهما كان قصيراً.</td></tr>
+  </table>
+  <div class="box info avoid"><b class="t">مثال</b>
+    فتحة عداد <span class="money">$1</span> + كيلومتر <span class="money">$0.60</span> + دقيقة <span class="money">$0.05</span>. مشوار 10 كم يأخذ 20 دقيقة:<br>
+    <span class="money">1 + (0.60 × 10) + (0.05 × 20) = $8.00</span><br>
+    ثم يُقرَّب للأعلى حسب إعداد التقريب (مثلاً لأقرب نصف دولار). وإذا خرج السعر أقل من الحد الأدنى، يُؤخذ الحد الأدنى.
+  </div>
+  <h3>تغيير الأسعار</h3>
+  <ol class="steps">
+    <li>اختر <span class="ui">Calculated</span> أو <span class="ui">Fixed route</span> في البطاقة.</li>
+    <li>عدّل الأرقام. تحت الخانات ترى أمثلة تتحدّث مباشرة (3 كم و 10 كم).</li>
+    <li>اضغط <span class="ui">Save</span>. السعر الجديد يُطبّق على الطلبات الجديدة فقط، وليس على المشاوير الجارية.</li>
+  </ol>
+  <div class="box tip"><b class="t">نصيحة</b>حتى لو تستعمل <span class="ui">Fixed route</span>، املأ أرقام الحساب بشكل منطقي — لأنها تُستعمل لأي مشوار ليس له سعر خط.</div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="chapter" id="c11">
+  <div class="chap-head"><div class="chap-num">11</div><h2>الأماكن</h2><span class="ui">Places</span></div>
+  <p class="lead">"المكان" هو بلدة أو منطقة (المنية، طرابلس، البداوي…). تُستعمل لثلاثة أشياء: أسعار الخطوط الثابتة، قائمة الوجهات السريعة في التطبيق، ومكان سيارات الإيجار.</p>
+  <figure><img src="img/16-places.png"><figcaption>قائمة الأماكن</figcaption></figure>
+  <h3>ما هو نصف القطر <span class="ui">Radius</span>؟</h3>
+  <p>المكان هو دائرة على الخريطة: <b>المركز</b> (خط العرض والطول) و<b>نصف القطر</b> بالكيلومتر. إذا كان الراكب داخل الدائرة، يعتبره النظام "في المنية" مثلاً.</p>
+  <div class="box info"><b class="t">مثال</b>المنية بنصف قطر 2.5 كم: أي راكب على بعد أقل من 2.5 كم من وسط المنية يُعتبر في المنية، فيأخذ سعر الخط الثابت المنية ← طرابلس.</div>
+  <h3>إضافة مكان جديد</h3>
+  <ol class="steps">
+    <li>افتح Google Maps، اضغط بالزر الأيمن على وسط البلدة، وانسخ الرقمين الظاهرين (مثلاً <span class="ltr">34.4800, 35.9300</span>). الأول هو <span class="ui">Latitude</span> والثاني <span class="ui">Longitude</span>.</li>
+    <li>في لوحة التحكم اضغط <span class="ui yellow">Add place</span>.</li>
+    <li>اكتب الاسم بالإنكليزية <span class="ui">Name (English)</span> وبالعربية <span class="ui">Name (Arabic)</span>، والصق الرقمين، واختر نصف القطر <span class="ui">Radius</span>.</li>
+    <li>اضغط <span class="ui">Save</span>.</li>
+  </ol>
+  <figure class="half"><img src="img/17-place-form.png"><figcaption>نموذج إضافة مكان</figcaption></figure>
+  <div class="box warn avoid"><b class="t">نصائح مهمة</b>
+    <ul style="margin:0">
+      <li><b>لا تجعل الدوائر كبيرة جداً</b>: إذا تداخلت دائرتان، النظام يختار الأقرب للمركز.</li>
+      <li>للبلدة الصغيرة 1 – 1.5 كم يكفي، للمدينة الكبيرة (طرابلس) 3 – 4 كم.</li>
+      <li><b>لا تحذف مكاناً</b> عليه سيارات إيجار — النظام يمنع ذلك. بدلاً من ذلك ألغِ تفعيله (<span class="ui">Active</span>)، فيختفي من التطبيق ومن حساب الأسعار.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="chapter" id="c12">
+  <div class="chap-head"><div class="chap-num">12</div><h2>أسعار الخطوط الثابتة</h2><span class="ui">Route fares</span></div>
+  <p class="lead">هنا تكتب السعر المتعارف عليه بين مكانين. يعمل فقط لنوع المركبة الذي اخترت له <span class="ui">Fixed route</span> في صفحة الأسعار.</p>
+  <figure><img src="img/18-route-fares.png"><figcaption>أسعار الخطوط: لكل خط سعر للتاكسي وسعر للتوك توك، مع قيمته بالليرة</figcaption></figure>
+  <h3>إضافة خط</h3>
+  <ol class="steps">
+    <li>اضغط <span class="ui yellow">Add route fare</span>.</li>
+    <li>اختر <b>من</b> <span class="ui">From</span> و<b>إلى</b> <span class="ui">To</span>.</li>
+    <li>اختر نوع المركبة <span class="ui">Vehicle type</span>: تاكسي أو توك توك. (للنوعين أضف خطّين.)</li>
+    <li>اكتب السعر بالدولار في <span class="ui">Price</span>. الليرة تُحسب تلقائياً من سعر الصرف.</li>
+    <li>اترك <span class="ui">Bidirectional</span> مفعّلاً إذا كان السعر نفسه بالاتجاهين (المنية ← طرابلس = طرابلس ← المنية).</li>
+    <li>اضغط <span class="ui">Save</span>.</li>
+  </ol>
+  <figure class="half"><img src="img/19-route-fare-form.png"><figcaption>نموذج إضافة سعر خط</figcaption></figure>
+  <div class="box tip"><b class="t">لماذا لم يُطبّق السعر الثابت على مشوار؟</b>
+    تحقّق من ثلاثة أشياء: (1) نوع المركبة على <span class="ui">Fixed route</span> في صفحة الأسعار. (2) مكان الانطلاق والوصول كلاهما داخل دائرة مكان مفعّل. (3) يوجد سعر لهذا الخط ولهذا النوع من المركبات.
+  </div>
+  <div class="box info"><b class="t">لا يمكن تكرار الخط</b>إذا حاولت إضافة نفس الخط لنفس نوع المركبة مرتين، يظهر لك تنبيه. عدّل السعر الموجود بدلاً من ذلك (أيقونة القلم).</div>
+</section>
+
+<!-- ============ 13 ============ -->
+<section class="chapter" id="c13">
+  <div class="chap-head"><div class="chap-num">13</div><h2>الحسابات المالية</h2><span class="ui">Billing</span></div>
+  <p class="lead">لكل سائق وصاحب سيارة "حساب" يشبه دفتر الدَّين في الدكان: كل عمولة أو اشتراك تُضاف عليه، وكل دفعة تُخصم منه.</p>
+  <figure><img src="img/20-billing.png"><figcaption>قائمة الحسابات: الرصيد، الخطة، وحالة الاشتراك لكل شخص</figcaption></figure>
+
+  <h3>كيف تقرأ الرصيد؟</h3>
+  <table>
+    <tr><th style="width:25%">الرقم</th><th>المعنى</th></tr>
+    <tr><td><span class="money plus">+$12.00</span> (أحمر)</td><td>الشخص <b>مدين</b> للمنصّة بهذا المبلغ.</td></tr>
+    <tr><td><span class="money">$0.00</span></td><td>لا شيء عليه.</td></tr>
+    <tr><td><span class="money minus">-$5.00</span> (أخضر)</td><td>دفع أكثر من المطلوب — له رصيد عند المنصّة.</td></tr>
+  </table>
+  <figure><img src="img/21-billing-account.png"><figcaption>حساب سائق: الرصيد، الاشتراك، وسجلّ كل الحركات</figcaption></figure>
+  <p>في <b>السجلّ</b> (<span class="ui">Ledger</span>) ترى كل حركة: <span class="ui">RIDE COMMISSION</span> عمولة مشوار، <span class="ui">RENTAL COMMISSION</span> عمولة إيجار، <span class="ui">SUBSCRIPTION FEE</span> رسوم اشتراك، <span class="ui">PAYMENT</span> دفعة، <span class="ui">ADJUSTMENT</span> تعديل يدوي.</p>
+
+  <h3>تسجيل دفعة من سائق</h3>
+  <ol class="steps">
+    <li>عندما يدفع لك السائق (نقداً، Whish، OMT…)، افتح حسابه من <span class="ui">Billing</span>.</li>
+    <li>اضغط <span class="ui green">Record payment</span>.</li>
+    <li>اكتب المبلغ بالدولار في <span class="ui">Amount received</span>، اختر طريقة الدفع <span class="ui">CASH</span> / <span class="ui">WHISH</span> / <span class="ui">OMT</span> / <span class="ui">OTHER</span>، واكتب ملاحظة <span class="ui">Note</span> إن أردت (مثلاً رقم التحويل).</li>
+    <li>اضغط <span class="ui green">Record payment</span>. الرصيد ينقص فوراً والسائق يصله إشعار.</li>
+  </ol>
+  <figure class="half"><img src="img/22-record-payment.png"><figcaption>تسجيل دفعة</figcaption></figure>
+
+  <h3>تفعيل الاشتراك الشهري</h3>
+  <p>السائق على الخطة الشهرية <b>لا يستطيع العمل</b> إلا إذا كان اشتراكه فعّالاً.</p>
+  <ol class="steps">
+    <li>افتح حساب السائق واضغط <span class="ui yellow">Activate months</span>.</li>
+    <li>اختر عدد الأشهر (1، 2، 3، 6، 12).</li>
+    <li>اضغط <span class="ui yellow">Activate 1 month</span> (يتغيّر الرقم حسب اختيارك). يُضاف الرسم على حسابه، ويمتد الاشتراك من تاريخ انتهائه الحالي (لا يضيع أي يوم).</li>
+    <li>عندما يدفع، سجّل الدفعة كما في الأعلى.</li>
+  </ol>
+  <figure class="half"><img src="img/23-activate-subscription.png"><figcaption>تفعيل أشهر اشتراك</figcaption></figure>
+
+  <h3>التعديل اليدوي <span class="ui">Adjustment</span></h3>
+  <p>لتصحيح خطأ أو إعطاء خصم. اضغط <span class="ui">Adjustment</span> واختر:</p><ul><li><span class="ui green">Credit (reduce what they owe)</span> — ينقص الدَّين (خصم أو تعويض).</li><li><span class="ui red">Charge (increase what they owe)</span> — يزيد الدَّين (تصحيح مبلغ ناقص).</li></ul><p>ثم اكتب المبلغ والسبب في <span class="ui">Note</span> (إجباري — اكتب السبب دائماً).</p>
+  <div class="box warn avoid"><b class="t">الحد الأقصى للدَّين</b>إذا تجاوز دَين السائق الحدّ المكتوب في الإعدادات (<span class="ui">Maximum debt</span>، مثلاً $20)، يُمنع من الاتصال واستقبال المشاوير حتى يدفع. هذا يحميك من تراكم الديون.</div>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="chapter" id="c14">
+  <div class="chap-head"><div class="chap-num">14</div><h2>المستخدمون</h2><span class="ui">Users</span></div>
+  <p>قائمة بكل الحسابات (ركاب، سائقون، أصحاب سيارات). ابحث بالاسم أو رقم الهاتف.</p>
+  <figure><img src="img/24-users.png"><figcaption>قائمة المستخدمين</figcaption></figure>
+  <h3>حظر مستخدم</h3>
+  <ol class="steps">
+    <li>ابحث عن المستخدم واضغط <span class="ui red">Block</span>، ثم أكّد بـ <span class="ui red">Block user</span>.</li>
+    <li>المستخدم المحظور لا يستطيع الدخول إلى التطبيق، وإذا كان سائقاً يُفصل فوراً.</li>
+    <li>لإلغاء الحظر اضغط <span class="ui green">Unblock</span>.</li>
+  </ol>
+  <div class="box info"><b class="t">متى أحظر ومتى أوقف؟</b>
+    لسائق عليه شكاوى استعمل <b>الإيقاف</b> من صفحة السائقين (الفصل 5) — يبقى يستطيع استعمال التطبيق كراكب. <b>الحظر</b> للحالات الخطيرة (احتيال، إساءة) ويمنع الحساب بالكامل.
+  </div>
+  <p>لا يمكنك حظر حسابك أنت (لا يظهر زر بجانبه).</p>
+</section>
+
+<!-- ============ 15 ============ -->
+<section class="chapter" id="c15">
+  <div class="chap-head"><div class="chap-num">15</div><h2>الإعدادات</h2><span class="ui">Settings</span></div>
+  <p>إعدادات عامة لكل المنصّة. بعد أي تعديل اضغط <span class="ui">Save settings</span> أسفل الصفحة. <span class="ui">Reset</span> يرجع الأرقام كما كانت قبل التعديل.</p>
+  <figure class="tall"><img src="img/25-settings.png"><figcaption>صفحة الإعدادات</figcaption></figure>
+  <table>
+    <tr><th style="width:27%">الإعداد</th><th>معناه</th><th style="width:16%">مثال</th></tr>
+    <tr><td><span class="ui">Ride commission</span></td><td>نسبة المنصّة من كل مشوار مكتمل (لسائقي خطة العمولة فقط).</td><td>10%</td></tr>
+    <tr><td><span class="ui">Rental commission</span></td><td>نسبة المنصّة من كل إيجار مكتمل (ليس على سيارات المنصّة).</td><td>10%</td></tr>
+    <tr><td><span class="ui">Monthly fee — Taxi</span></td><td>الاشتراك الشهري لسائق التاكسي.</td><td><span class="money">$30</span></td></tr>
+    <tr><td><span class="ui">Monthly fee — Tuk-tuk</span></td><td>الاشتراك الشهري لسائق التوك توك.</td><td><span class="money">$15</span></td></tr>
+    <tr><td><span class="ui">Maximum debt</span></td><td>إذا تجاوز دَين السائق هذا الرقم، لا يستطيع العمل حتى يدفع.</td><td><span class="money">$20</span></td></tr>
+    <tr><td><span class="ui">LBP rate</span></td><td>سعر الدولار بالليرة. كل الأسعار بالليرة في التطبيق تُحسب منه. <b>حدّثه عند تغيّر السعر.</b></td><td>89,500</td></tr>
+    <tr><td><span class="ui">Fare rounding</span></td><td>تقريب السعر المحسوب للأعلى. 0.5 يعني أن 3.20 تصبح 3.50.</td><td><span class="money">$0.5</span></td></tr>
+    <tr><td><span class="ui">Search radius</span></td><td>المسافة التي يُبحث فيها عن سائقين حول الراكب.</td><td>5 كم</td></tr>
+    <tr><td><span class="ui">Offer timeout</span></td><td>كم ثانية ينتظر الطلب قبل أن ينتهي إذا لم يقبله أحد.</td><td>60 ثانية</td></tr>
+    <tr><td><span class="ui">Support phone</span></td><td>رقم الدعم الذي يظهر للركاب والسائقين في التطبيق.</td><td class="ltr">+96170000000</td></tr>
+  </table>
+  <div class="box tip"><b class="t">نصائح</b>
+    <ul style="margin:0">
+      <li>إذا الركاب يشتكون "ما في سائقين"، جرّب زيادة <span class="ui">Search radius</span> (مثلاً إلى 8 كم) أو <span class="ui">Offer timeout</span> (إلى 90 ثانية).</li>
+      <li>تغيير نسبة العمولة يُطبّق على المشاوير التي تنتهي بعد التغيير فقط.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 16 ============ -->
+<section class="chapter" id="c16">
+  <div class="chap-head"><div class="chap-num">16</div><h2>المهام اليومية والأسبوعية والشهرية</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h4>☀️ كل يوم (10 دقائق)</h4>
+      <ul class="checklist">
+        <li>افتح <span class="ui">Dashboard</span>.</li>
+        <li>راجع السائقين بالانتظار ووافق أو ارفض.</li>
+        <li>راجع أصحاب السيارات والسيارات بالانتظار.</li>
+        <li>في <span class="ui">Rides</span> اختر <span class="ui">In progress</span>: هل يوجد مشوار عالق منذ ساعات؟</li>
+        <li>سجّل كل الدفعات التي استلمتها اليوم.</li>
+        <li>أكّد حجوزات سيارات المنصّة الجديدة.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>📅 كل أسبوع</h4>
+      <ul class="checklist">
+        <li>في <span class="ui">Billing</span> رتّب حسب الرصيد واتصل بأكبر المدينين.</li>
+        <li>راجع المشاوير <span class="ui">Expired</span>: كثرتها تعني أنك تحتاج سائقين أكثر في تلك المنطقة.</li>
+        <li>راجع المشاوير الملغاة وأسبابها.</li>
+        <li>حدّث سعر صرف الليرة إذا تغيّر.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🗓️ كل شهر</h4>
+      <ul class="checklist">
+        <li>فعّل أشهر الاشتراك لسائقي الخطة الشهرية الذين دفعوا.</li>
+        <li>راجع أسعار الخطوط مع أسعار الشارع (خاصة عند تغيّر سعر البنزين).</li>
+        <li>راجع السائقين ذوي التقييم المنخفض.</li>
+        <li>اطلب من المطوّر نسخة احتياطية من قاعدة البيانات.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>⛽ عند تغيّر سعر البنزين أو الدولار</h4>
+      <ul class="checklist">
+        <li>حدّث <span class="ui">LBP rate</span> في الإعدادات.</li>
+        <li>حدّث أسعار الخطوط في <span class="ui">Route fares</span>.</li>
+        <li>حدّث سعر الكيلومتر في <span class="ui">Pricing</span>.</li>
+        <li>أعلم السائقين بالأسعار الجديدة.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 17 ============ -->
+<section class="chapter" id="c17">
+  <div class="chap-head"><div class="chap-num">17</div><h2>مشاكل شائعة وحلولها</h2></div>
+  <table>
+    <tr><th style="width:34%">المشكلة</th><th>السبب والحل</th></tr>
+    <tr><td><b>سائق يقول: "ما عم يخليني أشتغل / أصير Online"</b></td><td>افتحه في <span class="ui">Drivers</span> ثم <span class="ui">Billing</span>. الأسباب الممكنة ثلاثة فقط:
+      <ol style="margin:4px 0 0">
+        <li>حسابه غير مقبول أو موقوف ← راجع حالته.</li>
+        <li>على الخطة الشهرية واشتراكه منتهٍ ← فعّل شهراً بعد أن يدفع.</li>
+        <li>دَينه أكبر من الحد الأقصى ← سجّل دفعة منه.</li>
+      </ol></td></tr>
+    <tr><td><b>راكب يقول: "ما حدا قبل المشوار"</b></td><td>لا يوجد سائق متصل قريب منه. تحقّق من عدد السائقين المتصلين في <span class="ui">Dashboard</span>. يمكنك زيادة <span class="ui">Search radius</span> أو <span class="ui">Offer timeout</span>.</td></tr>
+    <tr><td><b>السعر الثابت لم يظهر، ظهر سعر محسوب</b></td><td>راجع الفصل 12: الوضع <span class="ui">Fixed route</span>، المكانان مفعّلان ويغطيان الموقعين، والخط موجود لهذا النوع.</td></tr>
+    <tr><td><b>السعر بالليرة غير صحيح</b></td><td>حدّث <span class="ui">LBP rate</span> في الإعدادات. ملاحظة: المشوار القديم يحتفظ بسعر الصرف وقت طلبه.</td></tr>
+    <tr><td><b>سائق يريد تغيير خطته (عمولة ↔ شهري)</b></td><td>يستطيع ذلك بنفسه من تطبيقه وهو غير متصل. إذا اختار الشهري، فعّل له الاشتراك بعد الدفع.</td></tr>
+    <tr><td><b>مشوار عالق "In progress" منذ وقت طويل</b></td><td>اتصل بالسائق. إذا انتهى المشوار فعلاً اطلب منه الضغط على "إنهاء" (لتُحسب العمولة). إذا لم يحصل، ألغِه من <span class="ui">Cancel ride</span>.</td></tr>
+    <tr><td><b>صاحب سيارة يقول إن سيارته اختفت من التطبيق</b></td><td>غالباً عدّل الماركة أو الموديل أو الوصف فرجعت إلى <span class="ui">PENDING</span>. راجعها في <span class="ui">Rental listings</span> ووافق عليها.</td></tr>
+    <tr><td><b>زبون لا يستطيع الحجز بدون سائق</b></td><td>يجب أن يرفع صورة رخصة القيادة من التطبيق أولاً (حسابي ← المستندات).</td></tr>
+    <tr><td><b>لا أستطيع حذف مكان</b></td><td>عليه سيارات إيجار. ألغِ تفعيله بدلاً من الحذف.</td></tr>
+    <tr><td><b>سجّلت دفعة بالغلط</b></td><td>لا يوجد حذف للحركات (للأمان). أضف <span class="ui">Adjustment</span> من نوع <span class="ui">Charge</span> بنفس المبلغ واكتب "تصحيح دفعة خاطئة".</td></tr>
+    <tr><td><b>أريد إضافة مدير ثانٍ أو تغيير كلمة سر المدير</b></td><td>غير متوفر من لوحة التحكم حالياً. اطلب ذلك من المطوّر.</td></tr>
+    <tr><td><b>رمز التحقق (SMS) لا يصل للمستخدمين</b></td><td>إرسال الرسائل يحتاج ربط مزوّد SMS/WhatsApp. هذا عمل المطوّر قبل الإطلاق الرسمي.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 18 ============ -->
+<section class="chapter" id="c18">
+  <div class="chap-head"><div class="chap-num">18</div><h2>قاموس الكلمات</h2></div>
+  <table>
+    <tr><th style="width:30%">على الشاشة</th><th>بالعربي</th></tr>
+    <tr><td><span class="ui">Approve / Reject</span></td><td>قبول / رفض</td></tr>
+    <tr><td><span class="ui">Suspend / Reactivate</span></td><td>إيقاف / إعادة تفعيل</td></tr>
+    <tr><td><span class="ui">Pending</span></td><td>بانتظار المراجعة</td></tr>
+    <tr><td><span class="ui">Online / Offline</span></td><td>السائق متصل ويستقبل مشاوير / غير متصل</td></tr>
+    <tr><td><span class="ui">Fare</span></td><td>أجرة المشوار</td></tr>
+    <tr><td><span class="ui">Commission</span></td><td>عمولة المنصّة</td></tr>
+    <tr><td><span class="ui">Balance (owed)</span></td><td>الرصيد المستحق (الدَّين)</td></tr>
+    <tr><td><span class="ui">Ledger</span></td><td>سجلّ الحركات المالية</td></tr>
+    <tr><td><span class="ui">Record payment</span></td><td>تسجيل دفعة</td></tr>
+    <tr><td><span class="ui">Adjustment</span></td><td>تعديل يدوي على الرصيد</td></tr>
+    <tr><td><span class="ui">Subscription</span></td><td>الاشتراك الشهري</td></tr>
+    <tr><td><span class="ui">Pickup / Dropoff</span></td><td>مكان الانطلاق / مكان الوصول</td></tr>
+    <tr><td><span class="ui">Self drive / With driver</span></td><td>إيجار بدون سائق / مع سائق</td></tr>
+    <tr><td><span class="ui">Deposit</span></td><td>التأمين (يُدفع ويُرجع باليد)</td></tr>
+    <tr><td><span class="ui">Listing</span></td><td>سيارة معروضة للإيجار</td></tr>
+    <tr><td><span class="ui">Booking</span></td><td>حجز إيجار</td></tr>
+    <tr><td><span class="ui">Platform car</span></td><td>سيارة تملكها المنصّة</td></tr>
+    <tr><td><span class="ui">Agency / Individual</span></td><td>مكتب تأجير / فرد</td></tr>
+    <tr><td><span class="ui">Place / Radius</span></td><td>مكان (بلدة) / نصف القطر</td></tr>
+    <tr><td><span class="ui">Route fare</span></td><td>سعر الخط الثابت</td></tr>
+    <tr><td><span class="ui">Both ways / Bidirectional</span></td><td>بالاتجاهين</td></tr>
+    <tr><td><span class="ui">Expired</span></td><td>انتهت مهلة الطلب ولم يقبله أحد</td></tr>
+    <tr><td><span class="ui">Timeline</span></td><td>التسلسل الزمني</td></tr>
+  </table>
+  <div class="box info" style="margin-top:10mm"><b class="t">تحتاج مساعدة؟</b>لأي مشكلة تقنية (السيرفر لا يعمل، نسخ احتياطي، إضافة مدير، ربط SMS) تواصل مع فريق التطوير.</div>
+</section>
+
+</body>
+</html>
