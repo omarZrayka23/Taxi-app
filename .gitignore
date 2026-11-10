@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+backend/uploads/
+backend/uploads-e2e/
+mobile/.expo/
+mobile/android/
+mobile/ios/

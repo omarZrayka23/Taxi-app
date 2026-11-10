@@ -1,0 +1,373 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum VehicleType {
+  TAXI
+  TUKTUK
+}
+
+enum PricingMode {
+  CALCULATED
+  FIXED_ROUTE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BillingPlan {
+  COMMISSION
+  MONTHLY
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVER_LICENSE
+  CAR_REGISTRATION
+  INSURANCE
+  VEHICLE_PHOTO
+  BUSINESS_LICENSE
+}
+
+enum RideStatus {
+  REQUESTED
+  ACCEPTED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum CancelledBy {
+  PASSENGER
+  DRIVER
+  ADMIN
+  SYSTEM
+}
+
+enum OwnerType {
+  INDIVIDUAL
+  AGENCY
+  PLATFORM
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  HYBRID
+  ELECTRIC
+}
+
+enum RentalMode {
+  SELF_DRIVE
+  WITH_DRIVER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum LedgerType {
+  RIDE_COMMISSION
+  RENTAL_COMMISSION
+  SUBSCRIPTION_FEE
+  PAYMENT
+  ADJUSTMENT
+}
+
+model User {
+  id               Int        @id @default(autoincrement())
+  name             String     @db.VarChar(120)
+  phone            String     @unique @db.VarChar(20)
+  email            String?    @db.VarChar(190)
+  passwordHash     String     @db.VarChar(100)
+  role             UserRole   @default(USER)
+  language         String     @default("ar") @db.VarChar(2)
+  phoneVerified    Boolean    @default(false)
+  otpHash          String?    @db.VarChar(100)
+  otpExpiresAt     DateTime?
+  status           UserStatus @default(ACTIVE)
+  expoPushToken    String?    @db.VarChar(200)
+  ratingAvg        Float      @default(0)
+  ratingCount      Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  driverProfile    DriverProfile?
+  ownerProfile     OwnerProfile?
+  documents        Document[]
+  ridesAsPassenger Ride[]          @relation("PassengerRides")
+  ridesAsDriver    Ride[]          @relation("DriverRides")
+  listings         RentalListing[]
+  bookings         RentalBooking[] @relation("RenterBookings")
+  ledger           LedgerEntry[]
+  subscriptions    Subscription[]
+  rideOffers       RideOffer[]
+}
+
+model DriverProfile {
+  id              Int            @id @default(autoincrement())
+  userId          Int            @unique
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType     VehicleType
+  vehicleMake     String         @db.VarChar(60)
+  vehicleModel    String         @db.VarChar(60)
+  vehicleColor    String         @db.VarChar(40)
+  plateNumber     String         @db.VarChar(30)
+  licenseNumber   String         @db.VarChar(40)
+  status          ApprovalStatus @default(PENDING)
+  rejectionReason String?        @db.VarChar(300)
+  billingPlan     BillingPlan    @default(COMMISSION)
+  isOnline        Boolean        @default(false)
+  lat             Float?
+  lng             Float?
+  lastLocationAt  DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status, isOnline, vehicleType])
+}
+
+model OwnerProfile {
+  id              Int            @id @default(autoincrement())
+  userId          Int            @unique
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            OwnerType
+  businessName    String?        @db.VarChar(120)
+  status          ApprovalStatus @default(PENDING)
+  rejectionReason String?        @db.VarChar(300)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Document {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      DocumentType
+  url       String       @db.VarChar(255)
+  createdAt DateTime     @default(now())
+
+  @@index([userId, type])
+}
+
+model Place {
+  id        Int      @id @default(autoincrement())
+  nameEn    String   @db.VarChar(80)
+  nameAr    String   @db.VarChar(80)
+  lat       Float
+  lng       Float
+  radiusKm  Float    @default(2)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  routesFrom RouteFare[]     @relation("RouteFrom")
+  routesTo   RouteFare[]     @relation("RouteTo")
+  listings   RentalListing[]
+}
+
+model RouteFare {
+  id            Int         @id @default(autoincrement())
+  fromPlaceId   Int
+  fromPlace     Place       @relation("RouteFrom", fields: [fromPlaceId], references: [id], onDelete: Cascade)
+  toPlaceId     Int
+  toPlace       Place       @relation("RouteTo", fields: [toPlaceId], references: [id], onDelete: Cascade)
+  vehicleType   VehicleType
+  priceUsd      Decimal     @db.Decimal(10, 2)
+  bidirectional Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@unique([fromPlaceId, toPlaceId, vehicleType])
+}
+
+model PricingRule {
+  vehicleType VehicleType @id
+  mode        PricingMode @default(CALCULATED)
+  baseFare    Decimal     @db.Decimal(10, 2)
+  perKm       Decimal     @db.Decimal(10, 2)
+  perMin      Decimal     @db.Decimal(10, 2)
+  minimumFare Decimal     @db.Decimal(10, 2)
+  updatedAt   DateTime    @updatedAt
+}
+
+model Setting {
+  key   String @id @db.VarChar(60)
+  value String @db.VarChar(255)
+}
+
+model Ride {
+  id               Int          @id @default(autoincrement())
+  passengerId      Int
+  passenger        User         @relation("PassengerRides", fields: [passengerId], references: [id])
+  driverId         Int?
+  driver           User?        @relation("DriverRides", fields: [driverId], references: [id])
+  vehicleType      VehicleType
+  pricingMode      PricingMode
+  status           RideStatus   @default(REQUESTED)
+  pickupLat        Float
+  pickupLng        Float
+  pickupAddress    String       @db.VarChar(255)
+  dropoffLat       Float
+  dropoffLng       Float
+  dropoffAddress   String       @db.VarChar(255)
+  distanceKm       Float
+  durationMin      Float
+  fareUsd          Decimal      @db.Decimal(10, 2)
+  lbpRate          Int
+  commissionUsd    Decimal      @default(0) @db.Decimal(10, 2)
+  note             String?      @db.VarChar(300)
+  requestedAt      DateTime     @default(now())
+  acceptedAt       DateTime?
+  arrivedAt        DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  cancelledBy      CancelledBy?
+  cancelReason     String?      @db.VarChar(300)
+  ratingByPassenger Int?
+  ratingByDriver   Int?
+
+  offers           RideOffer[]
+  ledgerEntries    LedgerEntry[]
+
+  @@index([passengerId, status])
+  @@index([driverId, status])
+  @@index([status, requestedAt])
+}
+
+model RideOffer {
+  rideId    Int
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  driverId  Int
+  driver    User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([rideId, driverId])
+  @@index([driverId])
+}
+
+model RentalListing {
+  id                       Int            @id @default(autoincrement())
+  ownerId                  Int
+  owner                    User           @relation(fields: [ownerId], references: [id])
+  make                     String         @db.VarChar(60)
+  model                    String         @db.VarChar(60)
+  year                     Int
+  seats                    Int
+  transmission             Transmission
+  fuelType                 FuelType
+  color                    String         @db.VarChar(40)
+  placeId                  Int
+  place                    Place          @relation(fields: [placeId], references: [id])
+  description              String?        @db.Text
+  selfDrive                Boolean        @default(true)
+  pricePerDayUsd           Decimal?       @db.Decimal(10, 2)
+  withDriver               Boolean        @default(false)
+  withDriverPricePerDayUsd Decimal?       @db.Decimal(10, 2)
+  depositUsd               Decimal        @default(0) @db.Decimal(10, 2)
+  minDays                  Int            @default(1)
+  status                   ApprovalStatus @default(PENDING)
+  rejectionReason          String?        @db.VarChar(300)
+  isActive                 Boolean        @default(true)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  photos   ListingPhoto[]
+  bookings RentalBooking[]
+
+  @@index([status, isActive, placeId])
+}
+
+model ListingPhoto {
+  id        Int           @id @default(autoincrement())
+  listingId Int
+  listing   RentalListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String        @db.VarChar(255)
+  createdAt DateTime      @default(now())
+}
+
+model RentalBooking {
+  id              Int           @id @default(autoincrement())
+  listingId       Int
+  listing         RentalListing @relation(fields: [listingId], references: [id])
+  renterId        Int
+  renter          User          @relation("RenterBookings", fields: [renterId], references: [id])
+  startDate       DateTime      @db.Date
+  endDate         DateTime      @db.Date
+  days            Int
+  mode            RentalMode
+  pricePerDayUsd  Decimal       @db.Decimal(10, 2)
+  totalUsd        Decimal       @db.Decimal(10, 2)
+  depositUsd      Decimal       @db.Decimal(10, 2)
+  commissionUsd   Decimal       @default(0) @db.Decimal(10, 2)
+  lbpRate         Int
+  status          BookingStatus @default(PENDING)
+  note            String?       @db.VarChar(300)
+  rejectionReason String?       @db.VarChar(300)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  ledgerEntries LedgerEntry[]
+
+  @@index([listingId, status])
+  @@index([renterId])
+}
+
+model LedgerEntry {
+  id          Int            @id @default(autoincrement())
+  userId      Int
+  user        User           @relation(fields: [userId], references: [id])
+  type        LedgerType
+  amountUsd   Decimal        @db.Decimal(10, 2)
+  description String         @db.VarChar(255)
+  method      String?        @db.VarChar(20)
+  rideId      Int?
+  ride        Ride?          @relation(fields: [rideId], references: [id])
+  bookingId   Int?
+  booking     RentalBooking? @relation(fields: [bookingId], references: [id])
+  createdById Int?
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Subscription {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId, periodEnd])
+}
