@@ -93,16 +93,27 @@ async function main() {
     await fails('INVALID_CREDENTIALS', 'POST', '/auth/login', undefined, { phone: '70000000', password: 'x' });
     log('health, 404, auth errors, admin login');
 
-    const reg = async (name: string, phone: string) => (await ok('POST', '/auth/register', undefined, { name, phone, password: 'secret1' })).token as string;
+    const reg = async (name: string, phone: string, gender: 'MALE' | 'FEMALE' = 'MALE') =>
+      (await ok('POST', '/auth/register', undefined, { name, phone, password: 'secret1', gender })).token as string;
     const P = await reg('Passenger Pat', '03111111');
     const D = await reg('Driver Dan', '71222222');
     const O = await reg('Owner Omar', '76333333');
-    await fails('PHONE_TAKEN', 'POST', '/auth/register', undefined, { name: 'Dup', phone: '+9613111111', password: 'secret1' });
+    await fails('PHONE_TAKEN', 'POST', '/auth/register', undefined, { name: 'Dup', phone: '+9613111111', password: 'secret1', gender: 'MALE' });
     await fails('VALIDATION_ERROR', 'POST', '/auth/register', undefined, { name: 'X', phone: '12', password: '1' });
     await fails('FORBIDDEN', 'GET', '/admin/stats', P);
     const otp = await ok('POST', '/auth/otp/request', P);
     assert.equal((await ok('POST', '/auth/otp/verify', P, { code: otp.devCode })).user.phoneVerified, true);
     log('register, duplicate phone, validation, admin guard, OTP');
+
+    await fails('VALIDATION_ERROR', 'POST', '/auth/register', undefined, { name: 'No Gender', phone: '03999999', password: 'secret1' });
+    assert.equal((await ok('GET', '/auth/me', P)).user.gender, 'MALE');
+    await ok('PATCH', '/me', P, { gender: 'FEMALE' }); // unknown key is stripped by zod
+    assert.equal((await ok('GET', '/auth/me', P)).user.gender, 'MALE');
+    const oId = (await ok('GET', '/auth/me', O)).user.id;
+    assert.equal((await ok('PATCH', `/admin/users/${oId}`, admin, { gender: 'FEMALE' })).user.gender, 'FEMALE');
+    assert.equal((await ok('PATCH', `/admin/users/${oId}`, admin, { gender: 'MALE' })).user.gender, 'MALE');
+    await fails('VALIDATION_ERROR', 'PATCH', `/admin/users/${oId}`, admin, {});
+    log('register requires gender; user cannot change own gender; admin can');
 
     const config = await ok('GET', '/config');
     assert.equal(config.vehicleTypes.length, 2);

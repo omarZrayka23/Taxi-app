@@ -41,6 +41,7 @@ authRouter.post('/register', async (req, res) => {
       name: z.string().trim().min(2).max(120),
       phone: phoneSchema,
       password: z.string().min(6).max(100),
+      gender: z.enum(['MALE', 'FEMALE']),
       language: language.optional(),
     })
     .parse(req.body);
@@ -51,6 +52,7 @@ authRouter.post('/register', async (req, res) => {
       name: body.name,
       phone: body.phone,
       passwordHash: await bcrypt.hash(body.password, 10),
+      gender: body.gender,
       language: body.language ?? 'ar',
     },
     include: userInclude,

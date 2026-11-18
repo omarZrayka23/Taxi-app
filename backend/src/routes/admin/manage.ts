@@ -87,9 +87,12 @@ adminManageRouter.get('/users', async (req, res) => {
 
 adminManageRouter.patch('/users/:id', async (req, res) => {
   const id = idParam(req.params.id);
-  const { status } = z.object({ status: z.enum(['ACTIVE', 'BLOCKED']) }).parse(req.body);
-  if (id === me(req).id) throw conflict('CANNOT_BLOCK_SELF', 'You cannot block your own account');
-  const user = await prisma.user.update({ where: { id }, data: { status }, include: userInclude });
+  const { status, gender } = z
+    .object({ status: z.enum(['ACTIVE', 'BLOCKED']).optional(), gender: z.enum(['MALE', 'FEMALE']).optional() })
+    .refine((b) => b.status || b.gender, { message: 'Nothing to update' })
+    .parse(req.body);
+  if (status && id === me(req).id) throw conflict('CANNOT_BLOCK_SELF', 'You cannot block your own account');
+  const user = await prisma.user.update({ where: { id }, data: { status, gender }, include: userInclude });
   if (status === 'BLOCKED') await prisma.driverProfile.updateMany({ where: { userId: id }, data: { isOnline: false } });
   res.json({ user: serializeUser(user) });
 });

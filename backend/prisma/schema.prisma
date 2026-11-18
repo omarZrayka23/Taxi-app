@@ -12,6 +12,11 @@ enum UserRole {
   ADMIN
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 enum UserStatus {
   ACTIVE
   BLOCKED
@@ -112,6 +117,7 @@ model User {
   email            String?    @db.VarChar(190)
   passwordHash     String     @db.VarChar(100)
   role             UserRole   @default(USER)
+  gender           Gender?
   language         String     @default("ar") @db.VarChar(2)
   phoneVerified    Boolean    @default(false)
   otpHash          String?    @db.VarChar(100)
@@ -232,6 +238,7 @@ model Ride {
   driverId         Int?
   driver           User?        @relation("DriverRides", fields: [driverId], references: [id])
   vehicleType      VehicleType
+  driverGender     Gender?
   pricingMode      PricingMode
   status           RideStatus   @default(REQUESTED)
   pickupLat        Float
