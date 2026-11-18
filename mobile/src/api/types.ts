@@ -3,6 +3,7 @@
 export type UserRole = 'USER' | 'ADMIN';
 export type UserStatus = 'ACTIVE' | 'BLOCKED';
 export type Language = 'ar' | 'en';
+export type Gender = 'MALE' | 'FEMALE';
 export type VehicleType = 'TAXI' | 'TUKTUK';
 export type PricingMode = 'CALCULATED' | 'FIXED_ROUTE';
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
@@ -62,6 +63,7 @@ export interface User {
   phone: string;
   email: string | null;
   role: UserRole;
+  gender: Gender | null;
   language: Language;
   phoneVerified: boolean;
   status: UserStatus;
@@ -111,6 +113,7 @@ export interface Ride {
   id: number;
   status: RideStatus;
   vehicleType: VehicleType;
+  driverGender: Gender | null;
   pricingMode: PricingMode;
   pickupLat: number;
   pickupLng: number;
@@ -147,6 +150,8 @@ export interface RideEstimate {
   durationMin: number;
   fromPlace: Place | null;
   toPlace: Place | null;
+  /** An available woman driver of this vehicle type is near the pickup right now. */
+  womanDriverNearby: boolean;
 }
 
 export interface Listing {

@@ -63,6 +63,12 @@
     "devCode": "رمز التطوير",
     "useAnotherAccount": "استخدام حساب آخر"
   },
+  "gender": {
+    "label": "أنا",
+    "MALE": "رجل",
+    "FEMALE": "امرأة",
+    "required": "الرجاء الاختيار"
+  },
   "language": {
     "title": "اللغة",
     "change": "اللغة / Language",

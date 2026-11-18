@@ -63,6 +63,12 @@
     "devCode": "Development code",
     "useAnotherAccount": "Use another account"
   },
+  "gender": {
+    "label": "I am",
+    "MALE": "Man",
+    "FEMALE": "Woman",
+    "required": "Please choose"
+  },
   "language": {
     "title": "Language",
     "change": "اللغة / Language",

@@ -8,6 +8,7 @@ import type {
   DriverApplyInput,
   DriverBilling,
   DriverProfile,
+  Gender,
   Language,
   LatLng,
   Listing,
@@ -33,7 +34,7 @@ export interface AuthResponse {
 
 // ---------- Auth & profile ----------
 export const authApi = {
-  register: (body: { name: string; phone: string; password: string; language?: Language }) =>
+  register: (body: { name: string; phone: string; password: string; gender: Gender; language?: Language }) =>
     http.post<AuthResponse>('/auth/register', body),
   login: (body: { phone: string; password: string }) => http.post<AuthResponse>('/auth/login', body),
   requestOtp: () => http.post<{ sent: boolean; devCode?: string }>('/auth/otp/request'),
@@ -66,11 +67,12 @@ export interface RideRequestInput {
   pickup: LatLng & { address: string };
   dropoff: LatLng & { address: string };
   note?: string;
+  driverGender?: Gender;
 }
 
 export const ridesApi = {
   estimate: (pickup: LatLng, dropoff: LatLng) =>
-    http.post<{ estimates: RideEstimate[] }>('/rides/estimate', { pickup, dropoff }),
+    http.post<{ estimates: RideEstimate[]; hasWomenDrivers: boolean }>('/rides/estimate', { pickup, dropoff }),
   request: (body: RideRequestInput) => http.post<{ ride: Ride }>('/rides', body),
   current: () => http.get<{ ride: Ride | null }>('/rides/current'),
   list: (page: number, pageSize = 20) => http.get<Page<Ride>>('/rides', { page, pageSize }),
