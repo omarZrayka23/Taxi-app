@@ -103,7 +103,7 @@ const driverInclude = { user: true } satisfies Prisma.DriverProfileInclude;
 type DriverWithUser = Prisma.DriverProfileGetPayload<{ include: typeof driverInclude }>;
 const serializeDriverRow = (d: DriverWithUser) => ({
   ...serializeDriverProfile(d, d.user.ratingAvg, d.user.ratingCount),
-  user: userSummary(d.user),
+  user: { ...userSummary(d.user), gender: d.user.gender },
 });
 
 adminManageRouter.get('/drivers', async (req, res) => {

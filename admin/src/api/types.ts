@@ -9,6 +9,7 @@ export type UserStatus = (typeof USER_STATUSES)[number];
 
 export const LANGUAGES = ['ar', 'en'] as const;
 export type Language = (typeof LANGUAGES)[number];
+export type Gender = 'MALE' | 'FEMALE';
 
 export const VEHICLE_TYPES = ['TAXI', 'TUKTUK'] as const;
 export type VehicleType = (typeof VEHICLE_TYPES)[number];
@@ -131,6 +132,7 @@ export interface User {
   phone: string;
   email: string | null;
   role: UserRole;
+  gender: Gender | null;
   language: Language;
   phoneVerified: boolean;
   status: UserStatus;
@@ -326,7 +328,7 @@ export interface AdminStats {
 /** The embedded user is at least {id,name,phone}; the backend may include more User fields. */
 export type EmbeddedUser = UserRef & Partial<Omit<User, 'id' | 'name' | 'phone' | 'driverProfile' | 'ownerProfile'>>;
 
-export type AdminDriverListItem = DriverProfile & { user: UserRef; balanceUsd: number };
+export type AdminDriverListItem = DriverProfile & { user: UserRef & { gender: Gender | null }; balanceUsd: number };
 
 export type AdminDriver = DriverProfile & { user: EmbeddedUser };
 

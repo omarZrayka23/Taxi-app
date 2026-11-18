@@ -4,7 +4,13 @@ import { IconCheck, IconPlayerPause, IconPlayerPlay, IconX } from '@tabler/icons
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { adminApi, type DriverAction } from '../api/endpoints';
-import { APPROVAL_STATUSES, type AdminDriverListItem, type ApprovalStatus, type Subscription } from '../api/types';
+import {
+  APPROVAL_STATUSES,
+  type AdminDriverListItem,
+  type ApprovalStatus,
+  type Gender,
+  type Subscription,
+} from '../api/types';
 import { PaginatedTable, type Column } from '../components/DataTable';
 import { DocumentsGrid } from '../components/Documents';
 import { SearchInput, StatusFilter, useSearch } from '../components/Filters';
@@ -14,6 +20,8 @@ import { ReasonModal } from '../components/ReasonModal';
 import { StatusBadge } from '../components/StatusBadge';
 import { formatDate, formatDateTime, formatUsd } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
+
+const genderLabel = (g: Gender | null | undefined) => (g === 'FEMALE' ? 'Woman' : g === 'MALE' ? 'Man' : 'Not set');
 
 const columns: Column<AdminDriverListItem>[] = [
   { key: 'name', title: 'Driver', render: (d) => <PersonCell name={d.user.name} phone={d.user.phone} /> },
@@ -34,6 +42,7 @@ const columns: Column<AdminDriverListItem>[] = [
       </Stack>
     ),
   },
+  { key: 'gender', title: 'Gender', render: (d) => genderLabel(d.user.gender) },
   { key: 'plan', title: 'Plan', render: (d) => <StatusBadge value={d.billingPlan} /> },
   { key: 'status', title: 'Status', render: (d) => <StatusBadge value={d.status} /> },
   {
@@ -183,6 +192,7 @@ function DriverDrawer({ driverId, onClose }: { driverId: number | null; onClose:
                 items={[
                   { label: 'Driver profile ID', value: `#${driver.id}` },
                   { label: 'User ID', value: `#${driver.userId}` },
+                  { label: 'Gender', value: genderLabel(driver.user.gender) },
                   { label: 'Applied', value: formatDateTime(driver.createdAt) },
                   { label: 'License number', value: driver.licenseNumber },
                   {

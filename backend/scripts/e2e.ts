@@ -331,6 +331,7 @@ async function main() {
     await ok('POST', `/rides/${rm.id}/cancel`, WP, { reason: 'test' });
 
     const wUserId = (await ok('GET', '/auth/me', W)).user.id;
+    assert.equal((await ok('GET', '/admin/drivers?search=Wafa', admin)).items[0].user.gender, 'FEMALE');
     await ok('PATCH', `/admin/users/${wUserId}`, admin, { status: 'BLOCKED' });
     assert.equal((await estimate()).hasWomenDrivers, false, 'blocked woman driver must not count');
     log('gender: availability flags, woman-only/man-only dispatch, late online offer, accept guard, pending/blocked excluded');

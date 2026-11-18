@@ -1,5 +1,6 @@
 import { api, apiRequest } from './client';
 import type {
+  Gender,
   AdminDriver,
   AdminDriverDetail,
   AdminDriverListItem,
@@ -57,6 +58,7 @@ export const adminApi = {
   users: (params: { search?: string; page: number }) =>
     api.get<Page<User>>('/admin/users', { search: params.search, ...pageQuery(params.page) }),
   setUserStatus: (id: number, status: UserStatus) => api.patch<{ user: User }>(`/admin/users/${id}`, { status }),
+  setUserGender: (id: number, gender: Gender) => api.patch<{ user: User }>(`/admin/users/${id}`, { gender }),
 
   drivers: (params: { status?: ApprovalStatus | null; search?: string; page: number }) =>
     api.get<Page<AdminDriverListItem>>('/admin/drivers', {
