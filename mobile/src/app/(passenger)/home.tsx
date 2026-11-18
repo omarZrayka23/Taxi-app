@@ -9,13 +9,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { ApiError } from '@/api/client';
 import { ridesApi } from '@/api/endpoints';
 import { queryClient, qk } from '@/api/queries';
-import { isRideActive, type LatLng, type Place, type Ride, type VehicleType } from '@/api/types';
+import { isRideActive, type Gender, type LatLng, type Place, type Ride, type VehicleType } from '@/api/types';
 import { MINIEH } from '@/config';
 import { applyRideUpdate } from '@/realtime/socket';
+import { useAuth } from '@/store/auth';
 import { useRideStore } from '@/store/rides';
 import { coordLabel, errorMessage, formatUsd, placeName } from '@/lib/format';
 import { getCurrentPosition, reverseGeocode } from '@/lib/location';
-import { Banner, Button, IconButton, Price, Row, Stars, TextField, Txt } from '@/components/ui';
+import { Banner, Button, Chip, IconButton, Price, Row, Stars, TextField, Txt } from '@/components/ui';
 import { PlacePickerModal } from '@/components/ride/PlacePickerModal';
 import { DriverCard, EstimateCard, RouteSummary, vehicleIcon } from '@/components/ride/RideBits';
 import { colors, radius, spacing } from '@/theme';
@@ -42,6 +43,8 @@ export default function PassengerHome() {
   const [dropoff, setDropoff] = useState<Point | null>(null);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [vehicle, setVehicle] = useState<VehicleType>('TAXI');
+  const myGender: Gender = useAuth((s) => s.user?.gender) ?? 'MALE';
+  const [driverGender, setDriverGender] = useState<Gender>(myGender);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,14 +97,23 @@ export default function PassengerHome() {
   // ---------- estimates ----------
   const estimates = useQuery({
     queryKey: ['rides', 'estimate', pickup?.lat, pickup?.lng, dropoff?.lat, dropoff?.lng],
-    queryFn: async () => (await ridesApi.estimate(pickup!, dropoff!)).estimates,
+    queryFn: () => ridesApi.estimate(pickup!, dropoff!),
     enabled: step === 'confirm' && !!pickup && !!dropoff && !ride,
     staleTime: 60_000,
   });
+  const estimateList = estimates.data?.estimates;
+  // The Man/Woman row only exists once at least one woman driver is registered.
+  const showGenderRow = estimates.data?.hasWomenDrivers ?? false;
+  const womanAvailable = estimateList?.find((e) => e.vehicleType === vehicle)?.womanDriverNearby ?? false;
   useEffect(() => {
-    const list = estimates.data;
+    const list = estimateList;
     if (list?.length && !list.some((e) => e.vehicleType === vehicle)) setVehicle(list[0].vehicleType);
-  }, [estimates.data, vehicle]);
+  }, [estimateList, vehicle]);
+  // Default to the passenger's own gender, falling back to Man when no woman driver is nearby.
+  useEffect(() => {
+    if (!estimateList) return;
+    setDriverGender(myGender === 'FEMALE' && womanAvailable ? 'FEMALE' : 'MALE');
+  }, [estimateList, vehicle, myGender, womanAvailable]);
 
   // ---------- map fitting ----------
   const fit = useCallback((points: LatLng[]) => {
@@ -164,19 +176,35 @@ export default function PassengerHome() {
     if (pickup) mapRef.current?.animateToRegion({ latitude: pickup.lat, longitude: pickup.lng, ...DELTA }, 400);
   };
 
-  const requestRide = async (input?: { vehicleType: VehicleType; pickup: Point; dropoff: Point; note?: string }) => {
+  const requestRide = async (input?: {
+    vehicleType: VehicleType;
+    pickup: Point;
+    dropoff: Point;
+    note?: string;
+    driverGender?: Gender;
+  }) => {
     const body =
-      input ?? (pickup && dropoff ? { vehicleType: vehicle, pickup, dropoff, note: note.trim() || undefined } : null);
+      input ??
+      (pickup && dropoff
+        ? {
+            vehicleType: vehicle,
+            pickup,
+            dropoff,
+            note: note.trim() || undefined,
+            driverGender: showGenderRow ? driverGender : undefined,
+          }
+        : null);
     if (!body) return;
     setBusy(true);
     setError(null);
     try {
       // Prefer the matched place names when the estimate found them.
-      const est = estimates.data?.find((e) => e.vehicleType === body.vehicleType);
+      const est = estimateList?.find((e) => e.vehicleType === body.vehicleType);
       const pickupAddress = body.pickup.approx && est?.fromPlace ? placeName(est.fromPlace) : body.pickup.address;
       const dropoffAddress = body.dropoff.approx && est?.toPlace ? placeName(est.toPlace) : body.dropoff.address;
       const { ride: r } = await ridesApi.request({
         vehicleType: body.vehicleType,
+        driverGender: body.driverGender,
         note: body.note,
         pickup: { lat: body.pickup.lat, lng: body.pickup.lng, address: pickupAddress },
         dropoff: { lat: body.dropoff.lat, lng: body.dropoff.lng, address: dropoffAddress },
@@ -219,10 +247,11 @@ export default function PassengerHome() {
     resetFlow();
   };
 
-  const retryRide = (r: Ride) => {
+  const retryRide = (r: Ride, gender: Gender | null = r.driverGender) => {
     useRideStore.getState().setPassengerRide(null);
     void requestRide({
       vehicleType: r.vehicleType,
+      driverGender: gender ?? undefined,
       pickup: { lat: r.pickupLat, lng: r.pickupLng, address: r.pickupAddress },
       dropoff: { lat: r.dropoffLat, lng: r.dropoffLng, address: r.dropoffAddress },
       note: r.note ?? undefined,
@@ -315,6 +344,7 @@ export default function PassengerHome() {
               onCancel={cancelRide}
               onClose={closeRide}
               onRetry={() => retryRide(ride)}
+              onRetryOther={(g) => retryRide(ride, g)}
               busy={busy}
             />
           ) : step === 'pickup' ? (
@@ -372,7 +402,7 @@ export default function PassengerHome() {
                     <Button title={t('common.retry')} small onPress={() => void estimates.refetch()} />
                   </>
                 ) : (
-                  (estimates.data ?? []).map((e) => (
+                  (estimateList ?? []).map((e) => (
                     <EstimateCard
                       key={e.vehicleType}
                       estimate={e}
@@ -382,6 +412,29 @@ export default function PassengerHome() {
                   ))
                 )}
               </View>
+              {showGenderRow ? (
+                <View style={{ marginBottom: spacing.md }}>
+                  <Row gap={spacing.sm}>
+                    <Txt style={{ fontWeight: '600' }}>{t('driver.label')}:</Txt>
+                    <Chip
+                      label={t('gender.MALE')}
+                      selected={driverGender === 'MALE'}
+                      onPress={() => setDriverGender('MALE')}
+                    />
+                    <Chip
+                      label={t('gender.FEMALE')}
+                      selected={driverGender === 'FEMALE'}
+                      onPress={() => setDriverGender('FEMALE')}
+                      disabled={!womanAvailable}
+                    />
+                  </Row>
+                  {!womanAvailable ? (
+                    <Txt variant="small" style={{ marginTop: spacing.xs }}>
+                      {t('driver.noWomenNow')}
+                    </Txt>
+                  ) : null}
+                </View>
+              ) : null}
               <TextField placeholder={t('ride.notePlaceholder')} value={note} onChangeText={setNote} maxLength={200} />
               <Txt variant="small" style={{ marginBottom: spacing.sm }}>
                 {t('ride.cashNotice')}
@@ -390,7 +443,7 @@ export default function PassengerHome() {
                 title={t('ride.request', { vehicle: t(`vehicle.${vehicle}`) })}
                 onPress={() => void requestRide()}
                 loading={busy}
-                disabled={!estimates.data?.length}
+                disabled={!estimateList?.length}
               />
             </>
           )}
@@ -412,12 +465,14 @@ function RidePanel({
   onCancel,
   onClose,
   onRetry,
+  onRetryOther,
   busy,
 }: {
   ride: Ride;
   onCancel: () => void;
   onClose: () => void;
   onRetry: () => void;
+  onRetryOther: (gender: Gender) => void;
   busy: boolean;
 }) {
   const { t } = useTranslation();
@@ -515,6 +570,14 @@ function RidePanel({
         <>
           <Banner tone="warning" icon="sad-outline" title={t('ride.expired')} message={t('ride.expiredHint')} />
           <Button title={t('ride.tryAgain')} onPress={onRetry} loading={busy} />
+          {ride.driverGender ? (
+            <Button
+              title={t(ride.driverGender === 'FEMALE' ? 'ride.tryWithMan' : 'ride.tryWithWoman')}
+              variant="secondary"
+              onPress={() => onRetryOther(ride.driverGender === 'FEMALE' ? 'MALE' : 'FEMALE')}
+              loading={busy}
+            />
+          ) : null}
           <Button title={t('common.close')} variant="ghost" onPress={onClose} />
         </>
       );

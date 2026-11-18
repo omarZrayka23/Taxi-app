@@ -224,16 +224,24 @@ export function Chip({
   selected,
   onPress,
   icon,
+  disabled,
 }: {
   label: string;
   selected?: boolean;
   onPress?: () => void;
   icon?: IconName;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.chip, selected && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+      disabled={disabled}
+      accessibilityState={{ selected: !!selected, disabled: !!disabled }}
+      style={[
+        styles.chip,
+        selected && { backgroundColor: colors.primary, borderColor: colors.primary },
+        disabled && { opacity: 0.4 },
+      ]}
     >
       <Row gap={4}>
         {icon ? <Ionicons name={icon} size={14} color={colors.text} /> : null}

@@ -116,6 +116,8 @@
     "expired": "No drivers available",
     "expiredHint": "No driver accepted your request. Please try again.",
     "tryAgain": "Try again",
+    "tryWithMan": "Try again with a man driver",
+    "tryWithWoman": "Try again with a woman driver",
     "cancelledByYou": "You cancelled this ride",
     "cancelledByOther": "Ride cancelled by {{by}}"
   },
@@ -302,6 +304,8 @@
     "MONTHLY": "Monthly subscription"
   },
   "driver": {
+    "label": "Driver",
+    "noWomenNow": "No women drivers available now",
     "online": "You're online",
     "offline": "You're offline",
     "onlineHint": "Waiting for ride requests nearby.",
