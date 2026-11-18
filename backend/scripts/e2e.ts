@@ -292,6 +292,49 @@ async function main() {
     await fails('USER_BLOCKED', 'GET', '/auth/me', P);
     log('route duplicate guard, pricing mode switch, place-in-use guard, stats, block user');
 
+    // ---------- driver gender ----------
+    const W = await reg('Driver Wafa', '71444444', 'FEMALE');
+    const WP = await reg('Passenger Rana', '03555555', 'FEMALE');
+    const at = (p: any, address: string) => ({ lat: p.lat, lng: p.lng, address });
+    const estimate = () => ok('POST', '/rides/estimate', WP, { pickup: { lat: minieh.lat, lng: minieh.lng }, dropoff: { lat: tripoli.lat, lng: tripoli.lng } });
+    const taxiNearby = (e: any) => e.estimates.find((x: any) => x.vehicleType === 'TAXI').womanDriverNearby;
+    await ok('POST', '/driver/apply', W, {
+      vehicleType: 'TAXI', vehicleMake: 'Kia', vehicleModel: 'Rio', vehicleColor: 'Red',
+      plateNumber: 'T 777777', licenseNumber: 'L-7', billingPlan: 'COMMISSION',
+    });
+    let e = await estimate();
+    assert.equal(e.hasWomenDrivers, false, 'pending woman driver must not count');
+    const wPending = await ok('GET', '/admin/drivers?status=PENDING', admin);
+    await ok('POST', `/admin/drivers/${wPending.items[0].id}/approve`, admin);
+    e = await estimate();
+    assert.equal(e.hasWomenDrivers, true);
+    assert.equal(taxiNearby(e), false, 'offline woman driver is not nearby');
+
+    const rw = (await ok('POST', '/rides', WP, { vehicleType: 'TAXI', driverGender: 'FEMALE', pickup: at(minieh, 'A'), dropoff: at(tripoli, 'B') })).ride;
+    assert.equal(rw.driverGender, 'FEMALE');
+    assert.equal((await ok('GET', '/driver/offers', D)).rides.length, 0, 'man driver must not get a woman-only offer');
+    await fails('RIDE_NOT_AVAILABLE', 'POST', `/rides/${rw.id}/accept`, D);
+
+    const wSock = await connect(W);
+    const wOffer = nextEvent(wSock, 'ride:offer');
+    await ok('POST', '/driver/online', W, { lat: minieh.lat, lng: minieh.lng });
+    assert.equal((await wOffer).ride.id, rw.id);
+    assert.equal(taxiNearby(await estimate()), true);
+    await ok('POST', `/rides/${rw.id}/accept`, W);
+    await ok('POST', `/rides/${rw.id}/arrived`, W);
+    await ok('POST', `/rides/${rw.id}/start`, W);
+    await ok('POST', `/rides/${rw.id}/complete`, W);
+
+    const rm = (await ok('POST', '/rides', WP, { vehicleType: 'TAXI', driverGender: 'MALE', pickup: at(minieh, 'A'), dropoff: at(tripoli, 'B') })).ride;
+    assert.equal((await ok('GET', '/driver/offers', W)).rides.length, 0, 'woman driver must not get a man-only offer');
+    await fails('RIDE_NOT_AVAILABLE', 'POST', `/rides/${rm.id}/accept`, W);
+    await ok('POST', `/rides/${rm.id}/cancel`, WP, { reason: 'test' });
+
+    const wUserId = (await ok('GET', '/auth/me', W)).user.id;
+    await ok('PATCH', `/admin/users/${wUserId}`, admin, { status: 'BLOCKED' });
+    assert.equal((await estimate()).hasWomenDrivers, false, 'blocked woman driver must not count');
+    log('gender: availability flags, woman-only/man-only dispatch, late online offer, accept guard, pending/blocked excluded');
+
     console.log('\nAll e2e scenarios passed.');
   } finally {
     sockets.forEach((s) => s.close());

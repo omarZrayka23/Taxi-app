@@ -14,7 +14,10 @@ import {
   closeOffers,
   completeRide,
   dispatchRide,
+  hasWomenDrivers,
+  isDriverNearby,
   loadRide,
+  rideMatchesDriverGender,
   transitionRide,
 } from '../services/rides.js';
 import { rideInclude, serializeRide } from '../services/serializers.js';
@@ -27,14 +30,26 @@ const point = latLng.extend({ address: z.string().trim().min(1).max(255) });
 
 ridesRouter.post('/estimate', async (req, res) => {
   const body = z.object({ pickup: latLng, dropoff: latLng }).parse(req.body);
-  const { estimates } = await estimateFares(body.pickup, body.dropoff);
-  res.json({ estimates });
+  const [{ estimates }, women] = await Promise.all([estimateFares(body.pickup, body.dropoff), hasWomenDrivers()]);
+  const withAvailability = await Promise.all(
+    estimates.map(async (e) => ({
+      ...e,
+      womanDriverNearby: women ? await isDriverNearby(body.pickup, e.vehicleType, 'FEMALE') : false,
+    })),
+  );
+  res.json({ estimates: withAvailability, hasWomenDrivers: women });
 });
 
 ridesRouter.post('/', async (req, res) => {
   const user = me(req);
   const body = z
-    .object({ vehicleType, pickup: point, dropoff: point, note: z.string().trim().max(300).optional() })
+    .object({
+      vehicleType,
+      pickup: point,
+      dropoff: point,
+      note: z.string().trim().max(300).optional(),
+      driverGender: z.enum(['MALE', 'FEMALE']).optional(),
+    })
     .parse(req.body);
 
   const active = await prisma.ride.findFirst({
@@ -49,6 +64,7 @@ ridesRouter.post('/', async (req, res) => {
     data: {
       passengerId: user.id,
       vehicleType: body.vehicleType,
+      driverGender: body.driverGender ?? null,
       pricingMode: est.pricingMode,
       pickupLat: body.pickup.lat,
       pickupLng: body.pickup.lng,
@@ -128,7 +144,12 @@ ridesRouter.post('/:id/accept', async (req, res) => {
 
   const ride = await transitionRide(
     id,
-    { status: { in: ['REQUESTED'] }, vehicleType: profile!.vehicleType, passengerId: { not: user.id } },
+    {
+      status: { in: ['REQUESTED'] },
+      vehicleType: profile!.vehicleType,
+      passengerId: { not: user.id },
+      ...rideMatchesDriverGender(user.gender),
+    },
     { status: 'ACCEPTED', driverId: user.id, acceptedAt: new Date() },
     'RIDE_NOT_AVAILABLE',
   );

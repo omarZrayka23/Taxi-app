@@ -1,4 +1,4 @@
-import type { CancelledBy, DriverProfile, Prisma, RideStatus } from '@prisma/client';
+import type { CancelledBy, DriverProfile, Gender, Prisma, RideStatus } from '@prisma/client';
 import { prisma } from '../db.js';
 import { conflict, notFound } from '../lib/errors.js';
 import { haversineKm, type LatLng } from '../lib/geo.js';
@@ -39,7 +39,12 @@ export async function closeOffers(rideId: number, exceptDriverId?: number) {
 }
 
 /** Online, approved, fresh-location, idle drivers of a vehicle type, nearest first. */
-async function findAvailableDrivers(point: LatLng, vehicleType: DriverProfile['vehicleType'], radiusKm: number) {
+async function findAvailableDrivers(
+  point: LatLng,
+  vehicleType: DriverProfile['vehicleType'],
+  radiusKm: number,
+  gender: Gender | null,
+) {
   const latDelta = radiusKm / 111;
   const lngDelta = radiusKm / (111 * Math.cos((point.lat * Math.PI) / 180));
   const candidates = await prisma.driverProfile.findMany({
@@ -50,7 +55,11 @@ async function findAvailableDrivers(point: LatLng, vehicleType: DriverProfile['v
       lastLocationAt: { gte: new Date(Date.now() - LOCATION_FRESH_MS) },
       lat: { gte: point.lat - latDelta, lte: point.lat + latDelta },
       lng: { gte: point.lng - lngDelta, lte: point.lng + lngDelta },
-      user: { status: 'ACTIVE', ridesAsDriver: { none: { status: { in: DRIVER_BUSY_STATUSES } } } },
+      user: {
+        status: 'ACTIVE',
+        ...(gender ? { gender } : {}),
+        ridesAsDriver: { none: { status: { in: DRIVER_BUSY_STATUSES } } },
+      },
     },
   });
   return candidates
@@ -64,6 +73,26 @@ function offerExpiry(ride: { requestedAt: Date }, timeoutSec: number) {
   return new Date(ride.requestedAt.getTime() + timeoutSec * 1000);
 }
 
+/** Rides with no preference match anyone; otherwise only drivers of the requested gender. */
+export function rideMatchesDriverGender(gender: Gender | null): { OR: Prisma.RideWhereInput[] } {
+  return { OR: [{ driverGender: null }, ...(gender ? [{ driverGender: gender }] : [])] };
+}
+
+/** True if at least one approved, active woman driver is registered. */
+export async function hasWomenDrivers(): Promise<boolean> {
+  const found = await prisma.driverProfile.findFirst({
+    where: { status: 'APPROVED', user: { gender: 'FEMALE', status: 'ACTIVE' } },
+    select: { id: true },
+  });
+  return found !== null;
+}
+
+/** True if an available driver of this vehicle type and gender is near the point right now. */
+export async function isDriverNearby(point: LatLng, vehicleType: DriverProfile['vehicleType'], gender: Gender): Promise<boolean> {
+  const settings = await getSettings();
+  return (await findAvailableDrivers(point, vehicleType, settings.searchRadiusKm, gender)).length > 0;
+}
+
 /** Offer a freshly requested ride to the nearest available drivers. */
 export async function dispatchRide(ride: RideFull) {
   const settings = await getSettings();
@@ -71,6 +100,7 @@ export async function dispatchRide(ride: RideFull) {
     { lat: ride.pickupLat, lng: ride.pickupLng },
     ride.vehicleType,
     settings.searchRadiusKm,
+    ride.driverGender,
   );
   const chosen = drivers.slice(0, MAX_OFFERS);
   if (chosen.length === 0) return;
@@ -87,6 +117,7 @@ export async function dispatchRide(ride: RideFull) {
 export async function offerOpenRidesToDriver(profile: DriverProfile) {
   if (profile.lat === null || profile.lng === null) return;
   const settings = await getSettings();
+  const { gender } = await prisma.user.findUniqueOrThrow({ where: { id: profile.userId }, select: { gender: true } });
   const since = new Date(Date.now() - settings.offerTimeoutSec * 1000);
   const open = await prisma.ride.findMany({
     where: {
@@ -94,6 +125,7 @@ export async function offerOpenRidesToDriver(profile: DriverProfile) {
       vehicleType: profile.vehicleType,
       requestedAt: { gte: since },
       offers: { none: { driverId: profile.userId } },
+      ...rideMatchesDriverGender(gender),
     },
     include: rideInclude,
   });

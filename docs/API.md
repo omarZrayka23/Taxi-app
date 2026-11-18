@@ -41,7 +41,7 @@ Active ride statuses = `REQUESTED`, `ACCEPTED`, `ARRIVED`, `IN_PROGRESS`.
 
 ```ts
 User = {
-  id, name, phone, email: string|null, role: UserRole, language: Language,
+  id, name, phone, email: string|null, role: UserRole, gender: Gender|null /* 'MALE'|'FEMALE', admin-only change */, language: Language,
   phoneVerified: boolean, status: UserStatus, createdAt,
   driverProfile: DriverProfile|null, ownerProfile: OwnerProfile|null
 }
@@ -54,7 +54,7 @@ OwnerProfile = { id, userId, type: OwnerType, businessName: string|null, status:
 Document = { id, userId, type: DocumentType, url, createdAt }
 Place = { id, nameEn, nameAr, lat, lng, radiusKm, active: boolean }
 Ride = {
-  id, status: RideStatus, vehicleType, pricingMode,
+  id, status: RideStatus, vehicleType, driverGender: Gender|null /* null = any driver */, pricingMode,
   pickupLat, pickupLng, pickupAddress, dropoffLat, dropoffLng, dropoffAddress,
   distanceKm, durationMin, fareUsd, fareLbp, note: string|null,
   passenger: { id, name, phone },
@@ -89,7 +89,7 @@ Subscription = { id, userId, periodStart, periodEnd, active: boolean }
 
 | Method | Path | Body | Response |
 |---|---|---|---|
-| POST | `/auth/register` | `{ name, phone, password (min 6), language? }` | `{ token, user }` (409 `PHONE_TAKEN`) |
+| POST | `/auth/register` | `{ name, phone, password (min 6), gender: 'MALE'\|'FEMALE', language? }` | `{ token, user }` (409 `PHONE_TAKEN`) |
 | POST | `/auth/login` | `{ phone, password }` | `{ token, user }` (401 `INVALID_CREDENTIALS`, 403 `USER_BLOCKED`) |
 | POST | `/auth/otp/request` | — (auth) | `{ sent: true, devCode?: "123456" }` (`devCode` only when not production) |
 | POST | `/auth/otp/verify` | `{ code }` (auth) | `{ user }` (400 `INVALID_CODE`) |
@@ -117,8 +117,8 @@ Phone format: Lebanese, stored normalized as `+961XXXXXXXX`; clients may send `0
 
 | Method | Path | Body | Response |
 |---|---|---|---|
-| POST | `/rides/estimate` | `{ pickup: {lat,lng}, dropoff: {lat,lng} }` | `{ estimates: [{ vehicleType, fareUsd, fareLbp, pricingMode, distanceKm, durationMin, fromPlace: Place\|null, toPlace: Place\|null }] }` (one per vehicle type) |
-| POST | `/rides` | `{ vehicleType, pickup: {lat,lng,address}, dropoff: {lat,lng,address}, note? }` | `{ ride }` (409 `ACTIVE_RIDE_EXISTS`) |
+| POST | `/rides/estimate` | `{ pickup: {lat,lng}, dropoff: {lat,lng} }` | `{ estimates: [{ vehicleType, fareUsd, fareLbp, pricingMode, distanceKm, durationMin, fromPlace: Place\|null, toPlace: Place\|null, womanDriverNearby: boolean }], hasWomenDrivers: boolean }` (one per vehicle type; `hasWomenDrivers` = an approved, active woman driver is registered; `womanDriverNearby` = one is online, free and within the search radius of pickup) |
+| POST | `/rides` | `{ vehicleType, pickup: {lat,lng,address}, dropoff: {lat,lng,address}, note?, driverGender?: 'MALE'\|'FEMALE' }` (with `driverGender`, the ride is offered to and can be accepted only by drivers of that gender) | `{ ride }` (409 `ACTIVE_RIDE_EXISTS`) |
 | GET | `/rides/current` | — | `{ ride: Ride\|null }` |
 | GET | `/rides` | paginated | `Ride[]` page (own, newest first) |
 | GET | `/rides/:id` | — | `{ ride }` (passenger, assigned driver or admin) |
@@ -179,7 +179,7 @@ Admins automatically have an approved `PLATFORM` owner profile, so the admin pan
 |---|---|---|---|
 | GET | `/admin/stats` | — | `{ users, drivers: { total, pending, online }, ownersPending, listingsPending, rides: { today, completedToday, revenueTodayUsd }, bookings: { pending, active }, outstandingDebtUsd }` |
 | GET | `/admin/users` | `?search&page` | `User[]` page |
-| PATCH | `/admin/users/:id` | `{ status }` | `{ user }` |
+| PATCH | `/admin/users/:id` | `{ status?, gender? }` (at least one) | `{ user }` |
 | GET | `/admin/drivers` | `?status&search&page` | page of `DriverProfile & { user: {id,name,phone}, balanceUsd }` |
 | GET | `/admin/drivers/:id` | — | `{ driver: DriverProfile & { user }, documents: Document[], balanceUsd, subscription }` (`:id` = DriverProfile id) |
 | POST | `/admin/drivers/:id/approve` \| `/reject` \| `/suspend` \| `/reactivate` | `{ reason? }` | `{ driver }` |
