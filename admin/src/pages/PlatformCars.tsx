@@ -61,7 +61,7 @@ export function PlatformCars() {
     <>
       <Group justify="space-between" mb="md" wrap="wrap">
         <Text size="sm" c="dimmed" maw={640}>
-          Cars owned by Minieh Rides. No rental commission is charged on these. New cars start as <b>Pending</b> — approve them
+          Cars owned by Cedra. No rental commission is charged on these. New cars start as <b>Pending</b> — approve them
           from the car's panel to make them visible to renters.
         </Text>
         <Button

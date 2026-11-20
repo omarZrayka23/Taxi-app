@@ -55,7 +55,7 @@ export function AppLayout() {
             <ThemeIcon variant="filled" color="yellow" radius="md">
               <IconCash size={18} />
             </ThemeIcon>
-            <Text fw={700}>Minieh Rides</Text>
+            <Text fw={700}>Cedra</Text>
             <Text c="dimmed" size="sm" visibleFrom="xs">
               Admin
             </Text>

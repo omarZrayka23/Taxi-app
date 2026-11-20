@@ -1,4 +1,4 @@
-// Types mirroring docs/API.md (Minieh Rides API contract v1).
+// Types mirroring docs/API.md (Cedra API contract v1).
 
 // ---------- Enums ----------
 export const USER_ROLES = ['USER', 'ADMIN'] as const;

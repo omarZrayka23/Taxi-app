@@ -50,7 +50,7 @@ export default function LoginPage() {
               <ThemeIcon size={48} radius="xl" color="yellow">
                 <IconRoad size={28} />
               </ThemeIcon>
-              <Title order={3}>Minieh Rides Admin</Title>
+              <Title order={3}>Cedra Admin</Title>
               <Text size="sm" c="dimmed">
                 Sign in with an administrator account
               </Text>

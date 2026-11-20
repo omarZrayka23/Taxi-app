@@ -11,7 +11,7 @@ initRealtime(server);
 startRideSweeper();
 
 server.listen(config.port, () => {
-  console.log(`Minieh Rides API listening on http://localhost:${config.port}/api`);
+  console.log(`Cedra API listening on http://localhost:${config.port}/api`);
 });
 
 async function shutdown() {

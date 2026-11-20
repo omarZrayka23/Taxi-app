@@ -75,11 +75,17 @@ export async function ensureDirection(lang: Language): Promise<boolean> {
   const rtl = lang === 'ar';
   I18nManager.allowRTL(rtl);
   I18nManager.forceRTL(rtl);
-  if (I18nManager.isRTL === rtl) return false;
+  const target = rtl ? 'rtl' : 'ltr';
+  if (I18nManager.isRTL === rtl) {
+    await storage.remove(KEYS.rtlReloadTried);
+    return false;
+  }
 
-  const last = Number((await storage.get(KEYS.rtlReloadAt)) ?? 0);
-  if (Date.now() - last < 15_000) return false; // just tried; avoid a loop
-  await storage.set(KEYS.rtlReloadAt, String(Date.now()));
+  // Reload at most once per target direction. Some hosts (e.g. Expo Go) only apply
+  // forceRTL after a full app restart, so a JS reload would never fix it and a
+  // time-based guard loops forever whenever a reload takes longer than the window.
+  if ((await storage.get(KEYS.rtlReloadTried)) === target) return false;
+  await storage.set(KEYS.rtlReloadTried, target);
   return reloadApp();
 }
 

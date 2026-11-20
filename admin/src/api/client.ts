@@ -1,8 +1,8 @@
 import { API_BASE } from '../config';
 import type { ApiErrorBody } from './types';
 
-const TOKEN_KEY = 'minieh_admin_token';
-const USER_KEY = 'minieh_admin_user';
+const TOKEN_KEY = 'cedra_admin_token';
+const USER_KEY = 'cedra_admin_user';
 
 export const tokenStorage = {
   get(): string | null {

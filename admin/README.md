@@ -1,6 +1,6 @@
-# Minieh Rides — Admin panel
+# Cedra — Admin panel
 
-Web admin for the Minieh Rides platform (taxi + tuk-tuk rides and car rental, Minieh / North Lebanon).
+Web admin for the Cedra platform (taxi + tuk-tuk rides and car rental, Minieh / North Lebanon).
 
 Stack: Vite + React 18 + TypeScript, react-router-dom v6, TanStack Query v5, Mantine v7, Tabler icons.
 It talks to the backend described in [`../docs/API.md`](../docs/API.md).

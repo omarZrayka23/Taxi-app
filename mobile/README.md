@@ -1,4 +1,4 @@
-# Minieh Rides – mobile app
+# Cedra – mobile app
 
 React Native / Expo (SDK 58, expo-router, TypeScript) app for passengers, drivers (taxi / tuk-tuk) and car owners.
 It talks to the backend described in `../docs/API.md`.
@@ -49,7 +49,7 @@ npx expo start            # press "a" for Android emulator, or scan the QR code 
 ## Google Maps key (react-native-maps)
 
 On Android, react-native-maps uses the Google Maps SDK:
-1. In Google Cloud Console, enable **Maps SDK for Android** and create an API key. Restrict it to package `com.minieh.rides` and your signing certificate SHA-1.
+1. In Google Cloud Console, enable **Maps SDK for Android** and create an API key. Restrict it to package `com.cedra.app` and your signing certificate SHA-1.
 2. Put it in `.env` as `GOOGLE_MAPS_API_KEY=...`.
 3. Rebuild the native app (`npx expo run:android` / EAS build). Config plugins only apply at build time.
 

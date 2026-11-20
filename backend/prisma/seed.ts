@@ -88,7 +88,7 @@ async function main() {
   });
   await prisma.ownerProfile.upsert({
     where: { userId: admin.id },
-    create: { userId: admin.id, type: 'PLATFORM', businessName: 'Minieh Rides', status: 'APPROVED' },
+    create: { userId: admin.id, type: 'PLATFORM', businessName: 'Cedra', status: 'APPROVED' },
     update: {},
   });
 

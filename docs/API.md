@@ -1,4 +1,4 @@
-# Minieh Rides — API Contract (v1)
+# Cedra — API Contract (v1)
 
 This is the single source of truth between `backend/`, `admin/` and `mobile/`.
 Base URL: `http://<host>:4000/api`. All bodies are JSON unless marked *multipart*.

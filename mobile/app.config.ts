@@ -4,27 +4,27 @@ const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY ?? '';
 const EAS_PROJECT_ID = process.env.EAS_PROJECT_ID;
 
 const LOCATION_WHEN_IN_USE =
-  'Minieh Rides uses your location to set your pickup point and, for drivers, to receive nearby ride requests.';
+  'Cedra uses your location to set your pickup point and, for drivers, to receive nearby ride requests.';
 
 const config: ExpoConfig = {
-  name: 'Minieh Rides',
-  slug: 'minieh-rides',
-  scheme: 'miniehrides',
+  name: 'Cedra',
+  slug: 'cedra',
+  scheme: 'cedra',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.minieh.rides',
+    bundleIdentifier: 'com.cedra.app',
     infoPlist: {
       NSLocationWhenInUseUsageDescription: LOCATION_WHEN_IN_USE,
-      NSCameraUsageDescription: 'Minieh Rides uses the camera to photograph your documents and cars.',
-      NSPhotoLibraryUsageDescription: 'Minieh Rides needs access to your photos to upload documents and car photos.',
+      NSCameraUsageDescription: 'Cedra uses the camera to photograph your documents and cars.',
+      NSPhotoLibraryUsageDescription: 'Cedra needs access to your photos to upload documents and car photos.',
     },
   },
   android: {
-    package: 'com.minieh.rides',
+    package: 'com.cedra.app',
     adaptiveIcon: {
       backgroundColor: '#FFC107',
       foregroundImage: './assets/android-icon-foreground.png',
@@ -52,8 +52,8 @@ const config: ExpoConfig = {
     [
       'expo-image-picker',
       {
-        photosPermission: 'Minieh Rides needs access to your photos to upload documents and car photos.',
-        cameraPermission: 'Minieh Rides uses the camera to photograph your documents and cars.',
+        photosPermission: 'Cedra needs access to your photos to upload documents and car photos.',
+        cameraPermission: 'Cedra uses the camera to photograph your documents and cars.',
       },
     ],
     ['expo-notifications', { color: '#FFC107' }],

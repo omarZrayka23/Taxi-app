@@ -29,5 +29,5 @@ export const KEYS = {
   token: 'auth_token',
   mode: 'app_mode',
   language: 'app_language',
-  rtlReloadAt: 'rtl_reload_at',
+  rtlReloadTried: 'rtl_reload_tried',
 };

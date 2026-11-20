@@ -1,4 +1,4 @@
-# Minieh Rides
+# Cedra
 
 Taxi, tuk-tuk and car-rental platform for Minieh / North Lebanon, built to expand to all of Lebanon.
 

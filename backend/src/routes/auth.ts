@@ -30,7 +30,7 @@ async function loadUser(id: number) {
 async function ensureAdminOwnerProfile(userId: number) {
   await prisma.ownerProfile.upsert({
     where: { userId },
-    create: { userId, type: 'PLATFORM', businessName: 'Minieh Rides', status: 'APPROVED' },
+    create: { userId, type: 'PLATFORM', businessName: 'Cedra', status: 'APPROVED' },
     update: {},
   });
 }

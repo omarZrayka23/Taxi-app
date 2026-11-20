@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Minieh Rides",
+    "name": "Cedra",
     "tagline": "Taxi, tuk-tuk and car rental in Minieh"
   },
   "common": {
@@ -270,7 +270,7 @@
   },
   "driverApply": {
     "title": "Driver account",
-    "intro": "Drive with Minieh Rides using your taxi or tuk-tuk. Fill in your vehicle details, then upload your documents for review.",
+    "intro": "Drive with Cedra using your taxi or tuk-tuk. Fill in your vehicle details, then upload your documents for review.",
     "vehicleType": "Vehicle type",
     "vehicle": "Vehicle",
     "make": "Make",
@@ -390,7 +390,7 @@
   "ownerType": {
     "INDIVIDUAL": "Individual",
     "AGENCY": "Agency",
-    "PLATFORM": "Minieh Rides"
+    "PLATFORM": "Cedra"
   },
   "owner": {
     "addCar": "Add a car",

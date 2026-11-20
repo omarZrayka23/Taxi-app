@@ -1,4 +1,4 @@
-# Minieh Rides — Backend API
+# Cedra — Backend API
 
 Express 5 + TypeScript + Prisma (MySQL 8) + Socket.IO. The contract is in [../docs/API.md](../docs/API.md).
 
@@ -6,7 +6,7 @@ Express 5 + TypeScript + Prisma (MySQL 8) + Socket.IO. The contract is in [../do
 
 1. Install MySQL 8 (e.g. MySQL Installer for Windows, XAMPP/MariaDB 10.6+, or Docker) and create a database:
    ```sql
-   CREATE DATABASE minieh_rides CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE DATABASE cedra CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 2. Configure and install:
    ```bash

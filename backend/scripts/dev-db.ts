@@ -11,7 +11,7 @@ const PORT = Number(process.env.DEV_DB_PORT ?? 3307);
 
 async function main() {
   console.log('Starting temporary MySQL…');
-  const db = await createDB({ port: PORT, dbName: 'minieh_rides', logLevel: 'ERROR' });
+  const db = await createDB({ port: PORT, dbName: 'cedra', logLevel: 'ERROR' });
   const url = `mysql://${db.username}@127.0.0.1:${db.port}/${db.dbName}`;
   const env = { ...process.env, DATABASE_URL: url };
   execSync('npx prisma db push --skip-generate', { env, stdio: 'inherit' });

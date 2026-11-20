@@ -134,7 +134,7 @@ export default function UsersPage() {
 
   return (
     <>
-      <PageHeader title="Users" description="Everyone registered on Minieh Rides." />
+      <PageHeader title="Users" description="Everyone registered on Cedra." />
       <Group mb="md">
         <SearchInput value={search} onChange={setSearch} />
       </Group>
