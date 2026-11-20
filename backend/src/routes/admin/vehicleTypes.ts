@@ -40,7 +40,9 @@ adminVehicleTypesRouter.post('/', async (req, res) => {
   if (await prisma.vehicleType.findUnique({ where: { code: data.code } })) {
     throw conflict('VEHICLE_TYPE_EXISTS', `Vehicle type ${data.code} already exists`);
   }
-  const vehicleType = await prisma.vehicleType.create({ data });
+  const sortOrder =
+    data.sortOrder ?? ((await prisma.vehicleType.aggregate({ _max: { sortOrder: true } }))._max.sortOrder ?? 0) + 1;
+  const vehicleType = await prisma.vehicleType.create({ data: { ...data, sortOrder } });
   res.status(201).json({ vehicleType: serializeVehicleType(vehicleType, 0) });
 });
 

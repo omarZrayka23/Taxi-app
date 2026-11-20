@@ -25,7 +25,6 @@ import { DataTable, type Column } from '../components/DataTable';
 import { PageHeader } from '../components/Layout';
 import { QueryState } from '../components/QueryState';
 import { StatusBadge } from '../components/StatusBadge';
-import { VehicleBadge } from '../components/VehicleBadge';
 import { formatUsd, humanize } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
 import { keys, useVehicleTypes } from '../lib/queries';
@@ -99,7 +98,7 @@ export default function VehicleTypesPage() {
         </Stack>
       ),
     },
-    { key: 'icon', title: 'Icon', render: (t) => <VehicleBadge code={t.code} /> },
+    { key: 'icon', title: 'Icon', render: (t) => humanize(t.icon) },
     { key: 'capacity', title: 'Capacity', render: (t) => t.capacity },
     { key: 'mode', title: 'Pricing', render: (t) => <StatusBadge value={t.mode} /> },
     { key: 'min', title: 'Min fare', render: (t) => formatUsd(t.minimumFare) },
@@ -176,7 +175,11 @@ export default function VehicleTypesPage() {
       <QueryState query={query}>
         {(types) => <DataTable columns={columns} rows={types} rowKey={(t) => t.code} emptyMessage="No vehicle types yet." />}
       </QueryState>
-      <VehicleTypeFormModal opened={formOpen} type={editing} onClose={() => setFormOpen(false)} />
+      <VehicleTypeFormModal
+        opened={formOpen}
+        type={editing}
+        nextOrder={Math.max(0, ...(query.data ?? []).map((t) => t.sortOrder)) + 1}
+        onClose={() => setFormOpen(false)} />
     </>
   );
 }
@@ -217,7 +220,17 @@ const CODE_RULE = 'Capital letters, digits and _; starts with a letter; max 20.'
 const nonNegative = (v: number | string) => (v !== '' && Number(v) >= 0 ? null : 'Zero or more');
 const nameRule = (v: string) => (v.trim() && v.trim().length <= 60 ? null : '1–60 characters');
 
-function VehicleTypeFormModal({ opened, type, onClose }: { opened: boolean; type: AdminVehicleType | null; onClose: () => void }) {
+function VehicleTypeFormModal({
+  opened,
+  type,
+  nextOrder,
+  onClose,
+}: {
+  opened: boolean;
+  type: AdminVehicleType | null;
+  nextOrder: number;
+  onClose: () => void;
+}) {
   const form = useForm<Values>({
     initialValues: EMPTY,
     validate: {
@@ -230,7 +243,7 @@ function VehicleTypeFormModal({ opened, type, onClose }: { opened: boolean; type
       perMin: nonNegative,
       minimumFare: nonNegative,
       monthlyFeeUsd: nonNegative,
-      sortOrder: (v) => (v !== '' && Number.isInteger(Number(v)) ? null : 'Whole number'),
+      sortOrder: (v) => (v !== '' && Number.isInteger(Number(v)) && Number(v) >= 0 ? null : 'Whole number, 0 or more'),
     },
   });
 
@@ -253,7 +266,7 @@ function VehicleTypeFormModal({ opened, type, onClose }: { opened: boolean; type
             sortOrder: type.sortOrder,
             active: type.active,
           }
-        : EMPTY,
+        : { ...EMPTY, sortOrder: nextOrder },
     );
     form.clearErrors();
   }, [opened, type]);
@@ -348,7 +361,7 @@ function VehicleTypeFormModal({ opened, type, onClose }: { opened: boolean; type
               decimalScale={2}
               {...form.getInputProps('monthlyFeeUsd')}
             />
-            <NumberInput label="Order" description="Lower shows first" allowDecimal={false} {...form.getInputProps('sortOrder')} />
+            <NumberInput label="Order" description="Lower shows first" allowDecimal={false} min={0} {...form.getInputProps('sortOrder')} />
           </SimpleGrid>
           <Text size="xs" c="dimmed">
             Calculated example (before rounding): 3 km / 8 min → {formatUsd(example(3, 8))} · 10 km / 20 min →{' '}

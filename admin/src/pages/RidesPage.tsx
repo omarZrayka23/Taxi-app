@@ -17,7 +17,7 @@ import { useApiMutation } from '../lib/notify';
 const columns: Column<Ride>[] = [
   { key: 'id', title: '#', render: (r) => <Text size="sm" c="dimmed">#{r.id}</Text>, width: 70 },
   { key: 'when', title: 'Requested', render: (r) => formatDateTime(r.requestedAt) },
-  { key: 'type', title: 'Type', render: (r) => <VehicleBadge code={r.vehicleType} /> },
+  { key: 'type', title: 'Type', render: (r) => <VehicleBadge code={r.vehicleType} vehicle={r.vehicle} /> },
   {
     key: 'route',
     title: 'Route',
@@ -55,7 +55,7 @@ export default function RidesPage() {
 
   return (
     <>
-      <PageHeader title="Rides" description="All taxi and tuk-tuk rides, newest first." />
+      <PageHeader title="Rides" description="All rides, newest first." />
       <Group mb="md">
         <StatusFilter options={RIDE_STATUSES} value={status} onChange={setStatus} />
       </Group>
@@ -110,7 +110,7 @@ function RideDrawer({ initial, onClose }: { initial: Ride | null; onClose: () =>
           <Group justify="space-between">
             <Group gap={6}>
               <StatusBadge value={r.status} />
-              <VehicleBadge code={r.vehicleType} />
+              <VehicleBadge code={r.vehicleType} vehicle={r.vehicle} />
               <StatusBadge value={r.pricingMode} />
             </Group>
             {ACTIVE_RIDE_STATUSES.includes(r.status) && (

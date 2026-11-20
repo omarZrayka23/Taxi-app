@@ -32,7 +32,7 @@ const columns: Column<AdminDriverListItem>[] = [
     render: (d) => (
       <Stack gap={2}>
         <Group gap={6}>
-          <VehicleBadge code={d.vehicleType} />
+          <VehicleBadge code={d.vehicleType} vehicle={d.vehicle} />
           <Text size="sm">
             {d.vehicleMake} {d.vehicleModel}
           </Text>
@@ -207,7 +207,7 @@ function DriverDrawer({ driverId, onClose }: { driverId: number | null; onClose:
               <SectionTitle>Vehicle</SectionTitle>
               <InfoGrid
                 items={[
-                  { label: 'Type', value: <VehicleBadge code={driver.vehicleType} /> },
+                  { label: 'Type', value: <VehicleBadge code={driver.vehicleType} vehicle={driver.vehicle} /> },
                   { label: 'Make / model', value: `${driver.vehicleMake} ${driver.vehicleModel}` },
                   { label: 'Color', value: driver.vehicleColor },
                   { label: 'Plate', value: driver.plateNumber },

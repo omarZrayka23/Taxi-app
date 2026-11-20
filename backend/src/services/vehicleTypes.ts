@@ -41,11 +41,11 @@ export async function requireVehicleType(code: string, opts: { active: boolean }
 /** Today's built-in types; used by the seed and by the legacy-database migration. */
 export const LEGACY_VEHICLE_TYPES: Record<'TAXI' | 'TUKTUK', Omit<Prisma.VehicleTypeCreateInput, 'monthlyFeeUsd'>> = {
   TAXI: {
-    code: 'TAXI', nameEn: 'Taxi', nameAr: 'تاكسي', icon: 'CAR', capacity: 4, mode: 'CALCULATED', sortOrder: 0,
+    code: 'TAXI', nameEn: 'Taxi', nameAr: 'تاكسي', icon: 'CAR', capacity: 4, mode: 'CALCULATED', sortOrder: 1,
     baseFare: 1, perKm: 0.6, perMin: 0.05, minimumFare: 2,
   },
   TUKTUK: {
-    code: 'TUKTUK', nameEn: 'Tuk-tuk', nameAr: 'توك توك', icon: 'TUKTUK', capacity: 3, mode: 'CALCULATED', sortOrder: 0,
+    code: 'TUKTUK', nameEn: 'Tuk-tuk', nameAr: 'توك توك', icon: 'TUKTUK', capacity: 3, mode: 'CALCULATED', sortOrder: 2,
     baseFare: 0.5, perKm: 0.4, perMin: 0.03, minimumFare: 1,
   },
 };

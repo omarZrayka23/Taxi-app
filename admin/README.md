@@ -47,7 +47,7 @@ The JWT is kept in `localStorage`; any `401` from the API signs you out and retu
 - **Rental listings** — review tab (all owners' listings, approve / reject, photos) and **Platform cars** tab (the admin's own fleet via `/owner/listings`: create, edit, activate/deactivate, upload/delete photos).
 - **Rides** — status filter, detail drawer with timeline, admin cancel for active rides.
 - **Rental bookings** — status filter and detail drawer; for platform cars the admin can confirm / reject / start / complete (via `/owner/bookings/*`).
-- **Pricing** — per vehicle type: Calculated vs Fixed route + fare parameters.
+- **Vehicle types** — add, edit, turn on/off and order the vehicle types (name, icon, capacity); per type: Calculated vs Fixed route + fare parameters and monthly fee.
 - **Places** — CRUD for named areas (lat/lng/radius, active).
 - **Route fares** — CRUD for fixed prices between places, with LBP equivalent.
 - **Billing** — accounts with balances; account page with ledger, record payment, activate subscription months, adjustments.

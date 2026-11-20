@@ -129,6 +129,7 @@ export const serializeRide = (r: RideFull) => {
             name: r.driver.name,
             phone: r.driver.phone,
             vehicleType: dp.vehicleType,
+            vehicle: vehicleSummary(dp.vehicle),
             vehicleMake: dp.vehicleMake,
             vehicleModel: dp.vehicleModel,
             vehicleColor: dp.vehicleColor,

@@ -170,7 +170,7 @@ interface Values {
   bidirectional: boolean;
 }
 
-const EMPTY: Values = { fromPlaceId: null, toPlaceId: null, vehicleType: 'TAXI', priceUsd: '', bidirectional: true };
+const EMPTY: Values = { fromPlaceId: null, toPlaceId: null, vehicleType: '', priceUsd: '', bidirectional: true };
 
 function RouteFareFormModal({
   opened,
@@ -190,6 +190,7 @@ function RouteFareFormModal({
     validate: {
       fromPlaceId: (v) => (v ? null : 'Required'),
       toPlaceId: (v, all) => (!v ? 'Required' : v === all.fromPlaceId ? 'Must differ from the origin' : null),
+      vehicleType: (v) => (v ? null : 'Required'),
       priceUsd: (v) => (v !== '' && Number(v) > 0 ? null : 'Enter a price'),
     },
   });
@@ -205,10 +206,10 @@ function RouteFareFormModal({
             priceUsd: fare.priceUsd,
             bidirectional: fare.bidirectional,
           }
-        : EMPTY,
+        : { ...EMPTY, vehicleType: vehicleTypes.data?.[0]?.code ?? '' },
     );
     form.clearErrors();
-  }, [opened, fare]);
+  }, [opened, fare, vehicleTypes.data]);
 
   const save = useApiMutation({
     mutationFn: (input: RouteFareInput) => (fare ? adminApi.updateRouteFare(fare.id, input) : adminApi.createRouteFare(input)),

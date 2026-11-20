@@ -51,11 +51,13 @@ async function main() {
       execSync('npx tsx scripts/migrate-vehicle-types.ts', { env, stdio: 'inherit' });
     }
 
-    const types = await prisma.$queryRawUnsafe<{ code: string; baseFare: unknown; monthlyFeeUsd: unknown; mode: string }[]>(
-      'SELECT `code`, `baseFare`, `monthlyFeeUsd`, `mode` FROM `VehicleType` ORDER BY `code`',
+    const types = await prisma.$queryRawUnsafe<{ code: string; baseFare: unknown; monthlyFeeUsd: unknown; mode: string; sortOrder: number }[]>(
+      'SELECT `code`, `baseFare`, `monthlyFeeUsd`, `mode`, `sortOrder` FROM `VehicleType` ORDER BY `code`',
     );
     assert.deepEqual(types.map((t) => t.code), ['TAXI', 'TUKTUK'], 'VehicleType should hold TAXI and TUKTUK');
     const taxi = types[0];
+    assert.equal(taxi.sortOrder, 1, 'TAXI sortOrder should be 1');
+    assert.equal(types[1].sortOrder, 2, 'TUKTUK sortOrder should be 2');
     assert.equal(Number(taxi.baseFare), 1.75, 'TAXI baseFare should come from the old PricingRule');
     assert.equal(taxi.mode, 'FIXED_ROUTE', 'TAXI mode should come from the old PricingRule');
     assert.equal(Number(taxi.monthlyFeeUsd), 33, 'TAXI monthlyFeeUsd should come from the old monthlyFeeTaxiUsd setting');

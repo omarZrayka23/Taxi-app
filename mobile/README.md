@@ -1,6 +1,6 @@
 # Cedra – mobile app
 
-React Native / Expo (SDK 58, expo-router, TypeScript) app for passengers, drivers (taxi / tuk-tuk) and car owners.
+React Native / Expo (SDK 58, expo-router, TypeScript) app for passengers, drivers (any vehicle type) and car owners.
 It talks to the backend described in `../docs/API.md`.
 
 ## Features

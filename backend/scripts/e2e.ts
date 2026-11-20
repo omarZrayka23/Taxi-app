@@ -350,7 +350,10 @@ async function main() {
     const vt = { code: 'MINIBUS', nameEn: 'Minibus', nameAr: 'ميني باص', icon: 'VAN', capacity: 9, mode: 'CALCULATED',
       baseFare: 2, perKm: 1, perMin: 0.1, minimumFare: 4, monthlyFeeUsd: 25 };
     await fails('VALIDATION_ERROR', 'POST', '/admin/vehicle-types', admin, { ...vt, code: 'van 7' });
-    assert.equal((await ok('POST', '/admin/vehicle-types', admin, vt)).vehicleType.driverCount, 0);
+    const created = (await ok('POST', '/admin/vehicle-types', admin, vt)).vehicleType;
+    assert.equal(created.driverCount, 0);
+    const others = (await ok('GET', '/admin/vehicle-types', admin)).items.filter((v: any) => v.code !== 'MINIBUS');
+    assert.ok(others.every((v: any) => created.sortOrder > v.sortOrder), 'a type created without sortOrder lands last');
     await fails('VEHICLE_TYPE_EXISTS', 'POST', '/admin/vehicle-types', admin, vt);
     const M = await reg('Driver Mounir', '71666666');
     await ok('POST', '/driver/apply', M, {
@@ -373,7 +376,9 @@ async function main() {
     await ok('POST', `/rides/${mr.id}/complete`, M);
     await fails('INVALID_VEHICLE_TYPE', 'POST', '/rides', WP, { vehicleType: 'MINIBUS', pickup: at(minieh, 'A'), dropoff: at(tripoli, 'B') });
     // History still shows the name.
-    assert.equal((await ok('GET', `/rides/${mr.id}`, WP)).ride.vehicle.nameEn, 'Minibus');
+    const mride = (await ok('GET', `/rides/${mr.id}`, WP)).ride;
+    assert.equal(mride.vehicle.nameEn, 'Minibus');
+    assert.equal(mride.driver.vehicle.code, mride.vehicleType);
     const listed = (await ok('GET', '/admin/vehicle-types', admin)).items.find((v: any) => v.code === 'MINIBUS');
     assert.equal(listed.driverCount, 1);
     assert.equal(listed.active, false);
