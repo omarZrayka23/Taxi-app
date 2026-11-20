@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cedra Walkthrough</title>
+<style>
+  :root{
+    --y:#FFC107; --yd:#E0A800; --yl:#FFF4D1; --tx:#1A1A1A; --mu:#6B6B6B;
+    --bd:#E3E3E3; --sf:#F5F5F5; --ok:#2E7D32; --okl:#E7F4E8; --bad:#D32F2F; --badl:#FDECEC;
+    --info:#1565C0; --infol:#E6F0FB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#111}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--tx)}
+  #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
+    background:radial-gradient(1200px 700px at 85% 10%,#FFF1C2 0%,rgba(255,241,194,0) 60%),
+               radial-gradient(900px 600px at 0% 100%,#FFE7A3 0%,rgba(255,231,163,0) 55%),#FFFBF0}
+  .scene{position:absolute;inset:0;visibility:hidden}
+
+  /* captions */
+  .cap{position:absolute;left:110px;top:170px;width:660px}
+  .kicker{display:inline-block;background:var(--tx);color:var(--y);font-weight:700;font-size:20px;letter-spacing:2px;
+    text-transform:uppercase;padding:8px 18px;border-radius:999px}
+  .cap h2{font-size:62px;line-height:1.05;font-weight:800;margin:22px 0 30px;letter-spacing:-1px}
+  .cap ul{list-style:none}
+  .cap li{font-size:27px;line-height:1.35;margin:0 0 20px;padding-left:52px;position:relative;color:#333}
+  .cap li::before{content:"";position:absolute;left:0;top:4px;width:32px;height:32px;border-radius:50%;
+    background:var(--y) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.2 4.2L19 7' fill='none' stroke='%231A1A1A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat}
+  .cap li b{color:var(--tx)}
+
+  /* phone */
+  .phone{position:absolute;width:384px;height:784px;border-radius:58px;background:#151515;padding:12px;
+    box-shadow:0 40px 90px rgba(60,40,0,.28),inset 0 0 0 2px #333}
+  .screen{position:relative;width:100%;height:100%;border-radius:46px;overflow:hidden;background:#fff}
+  .notch{position:absolute;top:10px;left:50%;margin-left:-60px;width:120px;height:32px;border-radius:20px;background:#151515;z-index:50}
+  .sbar{position:absolute;top:0;left:0;right:0;height:50px;z-index:40;display:flex;justify-content:space-between;
+    align-items:center;padding:6px 30px 0;font-size:15px;font-weight:700}
+  .layer{position:absolute;inset:0;background:#fff}
+  .layer.clear{background:transparent}
+  .pad{padding:64px 22px 0}
+  .apptitle{font-size:26px;font-weight:800;margin-bottom:6px}
+  .muted{color:var(--mu)}
+  .small{font-size:13px}
+  .label{font-size:13px;font-weight:600;color:var(--mu);margin:12px 0 6px}
+  .field{border:1.5px solid var(--bd);border-radius:12px;height:46px;padding:0 14px;display:flex;align-items:center;font-size:16px;background:#fff}
+  .field.focus{border-color:var(--y)}
+  .btn{height:52px;border-radius:14px;background:var(--y);color:var(--tx);font-weight:700;font-size:17px;
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn.ghost{background:#fff;border:1.5px solid var(--bd)}
+  .btn.dark{background:var(--tx);color:#fff}
+  .btn.green{background:var(--ok);color:#fff}
+  .btn.red{background:#fff;color:var(--bad);border:1.5px solid #F2C4C4}
+  .row{display:flex;gap:10px;align-items:center}
+  .chip{display:inline-block;padding:8px 16px;border-radius:999px;border:1.5px solid var(--bd);font-size:15px;font-weight:600;background:#fff}
+  .chip.sel{background:var(--y);border-color:var(--y)}
+  .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .b-pend{background:var(--yl);color:#8a6200}
+  .b-ok{background:var(--okl);color:var(--ok)}
+  .b-info{background:var(--infol);color:var(--info)}
+  .b-dark{background:#eee;color:#444}
+  .card{border:1.5px solid var(--bd);border-radius:16px;padding:14px;background:#fff}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;
+    box-shadow:0 -8px 30px rgba(0,0,0,.12);padding:12px 18px 24px}
+  .grab{width:44px;height:5px;border-radius:3px;background:#ddd;margin:0 auto 12px}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;border-top:1px solid var(--bd);background:#fff;
+    display:flex;justify-content:space-around;align-items:flex-start;padding-top:10px;font-size:12px;color:var(--mu);font-weight:600}
+  .tabbar div{text-align:center}
+  .tabbar .on{color:var(--tx)}
+  .tabbar i{display:block;width:24px;height:24px;margin:0 auto 3px;border-radius:7px;background:#ddd;font-style:normal}
+  .tabbar .on i{background:var(--y)}
+  .dot{width:12px;height:12px;border-radius:50%;flex:none}
+  .route{display:flex;flex-direction:column;gap:8px;font-size:15px}
+  .route .row{gap:12px}
+  .vcard{flex:1;border:2px solid var(--bd);border-radius:16px;padding:10px 12px;position:relative}
+  .vcard.sel{border-color:var(--y);background:var(--yl)}
+  .vcard .em{font-size:28px;line-height:1}
+  .vcard .p{font-size:20px;font-weight:800;margin-top:4px}
+  .avatar{width:48px;height:48px;border-radius:50%;background:#FFE08A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none}
+  .check{width:26px;height:26px;border-radius:50%;background:var(--ok);flex:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.2 4.2L19 7' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:16px;background-position:center;background-repeat:no-repeat}
+  .empty{width:26px;height:26px;border-radius:50%;border:2px dashed #ccc;flex:none}
+  .pulse{position:absolute;border-radius:50%;border:3px solid var(--y);background:rgba(255,193,7,.12)}
+  .caret{display:inline-block;width:2px;height:1em;background:var(--tx);margin-left:1px;vertical-align:-2px}
+  .toast{position:absolute;left:18px;right:18px;top:60px;background:var(--tx);color:#fff;border-radius:14px;padding:14px 16px;font-size:15px;z-index:30}
+  .toast b{color:var(--y)}
+
+  /* big diagram boxes */
+  .box{position:absolute;background:#fff;border-radius:28px;box-shadow:0 20px 60px rgba(60,40,0,.14);padding:30px;text-align:center}
+  .box h3{font-size:32px;font-weight:800;margin:14px 0 8px}
+  .box p{font-size:21px;color:var(--mu);line-height:1.4}
+  .ico{width:90px;height:90px;border-radius:24px;background:var(--y);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:46px}
+  .flowdot{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--yd);margin:-8px 0 0 -8px}
+  .linelbl{position:absolute;font-size:19px;font-weight:600;color:#7a5a00;text-align:center;width:300px;margin-left:-150px}
+
+  /* browser */
+  .browser{position:absolute;left:770px;top:150px;width:1060px;height:700px;border-radius:18px;background:#fff;
+    box-shadow:0 40px 100px rgba(60,40,0,.25);overflow:hidden}
+  .bbar{height:44px;background:#F1F1F1;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #ddd}
+  .bbar i{width:13px;height:13px;border-radius:50%;display:block}
+  .url{margin-left:20px;background:#fff;border-radius:8px;height:28px;flex:1;max-width:520px;display:flex;align-items:center;padding:0 12px;font-size:14px;color:#666}
+  .shot{position:absolute;left:0;right:0;top:44px;bottom:0;overflow:hidden}
+  .shot img{width:100%;display:block;transform-origin:0 0}
+  .acap{position:absolute;left:110px;top:520px;width:620px}
+  .acap h3{font-size:44px;font-weight:800;line-height:1.1;margin-bottom:14px}
+  .acap p{font-size:26px;color:#444;line-height:1.4}
+  .pager{position:absolute;left:110px;top:860px;display:flex;gap:10px}
+  .pager i{width:34px;height:6px;border-radius:3px;background:#E8DDBF;display:block}
+  .pager i.on{background:var(--tx)}
+
+  .logo{width:150px;height:150px;border-radius:40px;background:var(--y);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 24px 60px rgba(224,168,0,.45)}
+  .center{position:absolute;left:0;right:0;text-align:center}
+  .pill{display:inline-flex;align-items:center;gap:12px;background:#fff;border-radius:999px;padding:16px 30px;font-size:28px;font-weight:700;
+    box-shadow:0 10px 30px rgba(60,40,0,.12);margin:0 10px}
+  .stepper{display:flex;flex-direction:column;gap:6px}
+  .st{display:flex;align-items:center;gap:18px;font-size:27px;font-weight:700;color:#B9AE90;position:relative;height:54px}
+  .st .n{width:42px;height:42px;border-radius:50%;background:#EFE6CC;color:#9b8f6f;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative}
+  .st .hl{position:absolute;inset:0;display:flex;align-items:center;gap:18px;color:var(--tx)}
+  .st .hl .n{background:var(--y);color:var(--tx)}
+  .note{font-size:23px;color:#555;line-height:1.4;margin-top:26px;padding:18px 22px;background:#fff;border-radius:18px;box-shadow:0 8px 24px rgba(60,40,0,.08)}
+  .money{position:absolute;background:#fff;border-radius:24px;box-shadow:0 16px 44px rgba(60,40,0,.13);padding:22px 26px;text-align:center;width:300px}
+  .money .em{font-size:52px}
+  .money h4{font-size:27px;font-weight:800;margin:6px 0 4px}
+  .money p{font-size:19px;color:var(--mu);line-height:1.35}
+  .arrow-lbl{position:absolute;font-size:22px;font-weight:800;background:var(--y);padding:8px 16px;border-radius:12px;white-space:nowrap}
+  .warn{position:absolute;background:var(--badl);color:#8e1b1b;border:2px solid #F2B8B8;border-radius:20px;padding:18px 24px;font-size:23px;font-weight:600;line-height:1.35}
+
+  #hud{position:fixed;left:12px;bottom:10px;color:#aaa;font:13px system-ui;z-index:99}
+  body.capture #hud{display:none}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ 1. INTRO ============ -->
+<section class="scene" data-dur="6">
+  <div class="center" style="top:250px">
+    <div data-in="0.2" data-fx="pop" style="display:inline-block">
+      <div class="logo"><svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h14l2 5v4a1 1 0 0 1-1 1h-1"/><path d="M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M3 12h18"/><path d="M10 4h4v3h-4z"/></svg></div>
+    </div>
+  </div>
+  <div class="center" style="top:440px;font-size:110px;font-weight:900;letter-spacing:-3px" data-in="0.6">Cedra</div>
+  <div class="center" style="top:590px;font-size:38px;color:#555" data-in="1.1">Taxi, tuk-tuk and car rental in Minieh · North Lebanon</div>
+  <div class="center" style="top:720px">
+    <span class="pill" data-in="1.8" data-fx="pop">🙋 Passengers</span>
+    <span class="pill" data-in="2.1" data-fx="pop">🚕 Drivers</span>
+    <span class="pill" data-in="2.4" data-fx="pop">🔑 Car owners</span>
+    <span class="pill" data-in="2.7" data-fx="pop">🛠️ Admin</span>
+  </div>
+  <div class="center" style="top:880px;font-size:28px;color:#8a6200;font-weight:700" data-in="3.4">How the app works, step by step</div>
+</section>
+
+<!-- ============ 2. OVERVIEW ============ -->
+<section class="scene" data-dur="9">
+  <div class="center" style="top:90px" data-in="0.2"><span class="kicker">The big picture</span></div>
+  <div class="center" style="top:150px;font-size:60px;font-weight:800;letter-spacing:-1px" data-in="0.4">Three parts, working together</div>
+  <div class="box" style="left:110px;top:380px;width:470px;height:330px" data-in="0.9">
+    <div class="ico">📱</div>
+    <h3>Mobile app</h3>
+    <p>One app for <b>passengers</b>, <b>drivers</b> and <b>car owners</b><br>Arabic &amp; English</p>
+  </div>
+  <div class="box" style="left:725px;top:380px;width:470px;height:330px" data-in="1.5">
+    <div class="ico" style="background:var(--tx);color:#fff">⚙️</div>
+    <h3>Backend server</h3>
+    <p>Prices, dispatch, billing<br>and <b>live updates</b> sent instantly to every phone</p>
+  </div>
+  <div class="box" style="left:1340px;top:380px;width:470px;height:330px" data-in="2.1">
+    <div class="ico">🖥️</div>
+    <h3>Admin panel</h3>
+    <p>Approve drivers &amp; cars,<br>set prices, track<br>money owed</p>
+  </div>
+  <div class="flowwrap" data-in="2.8" data-fx="fade">
+    <div class="linelbl" style="left:652px;top:478px">book &amp; track</div>
+    <div class="linelbl" style="left:1267px;top:478px">manage</div>
+    <div class="flowdot" data-flow="585,720,530,0"></div><div class="flowdot" data-flow="585,720,530,0.33"></div><div class="flowdot" data-flow="585,720,530,0.66"></div>
+    <div class="flowdot" data-flow="720,585,570,0.15"></div><div class="flowdot" data-flow="720,585,570,0.65"></div>
+    <div class="flowdot" data-flow="1335,1200,530,0.1"></div><div class="flowdot" data-flow="1335,1200,530,0.6"></div>
+    <div class="flowdot" data-flow="1200,1335,570,0.4"></div><div class="flowdot" data-flow="1200,1335,570,0.9"></div>
+  </div>
+  <div class="center" style="top:800px;font-size:28px;color:#555" data-in="4">Let's follow one passenger, one driver and one car owner.</div>
+</section>
+
+<!-- ============ 3. SIGN UP ============ -->
+<section class="scene" data-dur="11">
+  <div class="cap">
+    <span class="kicker" data-in="0.2">Step 1 · Everyone</span>
+    <h2 data-in="0.4">Sign up with a phone number</h2>
+    <ul>
+      <li data-in="1.2">Name, Lebanese phone number and password</li>
+      <li data-in="2.6">Choose <b>Man</b> or <b>Woman</b> (used for driver matching)</li>
+      <li data-in="5.4">Confirm the phone with an <b>SMS code</b></li>
+      <li data-in="8.2">Use the app in <b>Arabic</b> or <b>English</b></li>
+    </ul>
+  </div>
+  <div class="phone" style="left:1150px;top:148px" data-in="0.5" data-fx="right">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <!-- register -->
+      <div class="layer pad">
+        <div class="apptitle">Create account</div>
+        <div class="muted small">Taxi, tuk-tuk and car rental in Minieh</div>
+        <div class="label">Full name</div>
+        <div class="field"><span data-type="Lina Haddad" data-in="1.2"></span></div>
+        <div class="label">Phone number</div>
+        <div class="field"><span class="muted">+961&nbsp;</span><span data-type="03 123 456" data-in="2.2"></span></div>
+        <div class="muted small" style="margin-top:4px">Lebanese number, e.g. 03123456 or 71123456</div>
+        <div class="label">Password</div>
+        <div class="field"><span data-type="••••••••" data-in="3.0"></span></div>
+        <div class="label">I am</div>
+        <div class="row" style="position:relative">
+          <span class="chip">Man</span>
+          <span style="position:relative;display:inline-block"><span class="chip">Woman</span><span class="chip sel" style="position:absolute;left:0;top:0" data-in="3.9" data-fx="fade">Woman</span></span>
+        </div>
+        <div class="btn" style="margin-top:26px" data-press="4.6">Create account</div>
+        <div class="muted small" style="text-align:center;margin-top:14px">Already have an account? Log in</div>
+      </div>
+      <!-- verify -->
+      <div class="layer pad" data-in="5.0" data-fx="left" data-out="8.0">
+        <div class="apptitle">Verify your phone</div>
+        <div class="muted" style="font-size:15px">Enter the code we sent by SMS to +961 3 123 456</div>
+        <div class="toast" data-in="5.4" data-out="7.0" style="top:auto;bottom:40px">💬 SMS: Your Cedra code is <b>482913</b></div>
+        <div class="label" style="margin-top:28px">Verification code</div>
+        <div class="field focus" style="font-size:26px;letter-spacing:10px;font-weight:700;height:60px"><span data-type="482913" data-in="6.0"></span></div>
+        <div class="btn" style="margin-top:22px" data-press="7.4">Verify</div>
+        <div class="muted small" style="text-align:center;margin-top:14px">Resend code in 42s</div>
+      </div>
+      <!-- language -->
+      <div class="layer pad" data-in="8.0" data-fx="left">
+        <div class="apptitle">Language</div>
+        <div class="muted" style="font-size:15px">Choose the app language · اختر لغة التطبيق</div>
+        <div class="card" style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:700" data-press="8.9">العربية <span class="empty"></span></div>
+        <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:700;border-color:var(--y);background:var(--yl)">English <span class="check"></span></div>
+        <div class="muted small" style="margin-top:18px">Arabic switches the whole app to right-to-left.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. REQUEST A RIDE ============ -->
+<section class="scene" data-dur="16">
+  <div class="cap">
+    <span class="kicker" data-in="0.2">Step 2 · Passenger</span>
+    <h2 data-in="0.4">Request a ride</h2>
+    <ul>
+      <li data-in="1.0">Place the <b>green pin</b> on your pickup point</li>
+      <li data-in="4.8">Pick a destination, e.g. <b>Minieh → Tripoli</b></li>
+      <li data-in="8.4">See the price first: <b>Taxi $5 · Tuk-tuk $3</b></li>
+      <li data-in="10.0">Ask for a <b>man or woman driver</b></li>
+      <li data-in="11.6">Pay the driver <b>in cash</b>, no card needed</li>
+    </ul>
+  </div>
+  <div class="phone" style="left:1150px;top:148px" data-in="0.3" data-fx="right">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer"><svg class="mapsvg" data-map="r4" width="360" height="760"></svg></div>
+      <!-- pickup sheet -->
+      <div class="layer clear" data-out="4.3">
+        <div style="position:absolute;left:230px;top:118px"><svg width="40" height="52" viewBox="0 0 40 52"><path d="M20 50C20 50 3 30 3 19a17 17 0 0 1 34 0c0 11-17 31-17 31z" fill="#2E7D32" stroke="#fff" stroke-width="3"/><circle cx="20" cy="19" r="6" fill="#fff"/></svg></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div style="font-size:20px;font-weight:800">Set your pickup point</div>
+          <div class="muted" style="font-size:15px;margin:6px 0 16px">Move the map to place the green pin on your pickup point.</div>
+          <div class="btn" data-press="3.6">✓ Confirm pickup</div>
+        </div>
+      </div>
+      <!-- where to -->
+      <div class="layer clear" data-in="4.3" data-fx="fade" data-out="8.0">
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="route"><div class="row"><span class="dot" style="background:var(--ok)"></span>Minieh, Main Street</div><div class="row"><span class="dot" style="background:var(--bad)"></span><span class="muted">Where to?</span></div></div>
+          <div style="font-size:20px;font-weight:800;margin:16px 0 12px">Where to?</div>
+          <div class="btn" data-press="5.4">📍 Choose a destination</div>
+          <div class="btn ghost" style="margin-top:10px">Pin on map</div>
+        </div>
+      </div>
+      <!-- place picker -->
+      <div class="layer pad" data-in="5.8" data-fx="up" data-out="8.0">
+        <div style="font-size:20px;font-weight:800;margin-bottom:12px">Choose a destination</div>
+        <div class="field focus">🔍&nbsp;<span data-type="Trip" data-in="6.2"></span></div>
+        <div style="margin-top:12px">
+          <div class="card" style="margin-bottom:8px;font-size:17px;font-weight:600" data-press="7.4">Tripoli <span class="muted small">· طرابلس</span></div>
+          <div class="card" style="margin-bottom:8px;font-size:17px;font-weight:600;opacity:.45">Beddawi</div>
+          <div class="card" style="margin-bottom:8px;font-size:17px;font-weight:600;opacity:.45">El Mina</div>
+          <div class="card" style="font-size:17px;font-weight:600;opacity:.45">Deir Ammar</div>
+        </div>
+      </div>
+      <!-- route + options -->
+      <div class="layer clear" data-in="8.0" data-fx="fade">
+        <svg width="360" height="760" style="position:absolute;left:0;top:0">
+          <path id="r4route" d="M250 170 L250 230 L190 270 L150 330 L95 340" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" data-draw="8.2" data-dur="1.2"/>
+          <circle cx="250" cy="170" r="10" fill="#2E7D32" stroke="#fff" stroke-width="3"/>
+          <circle cx="95" cy="340" r="10" fill="#D32F2F" stroke="#fff" stroke-width="3" data-in="9.2" data-fx="fade"/>
+        </svg>
+        <div class="sheet" style="padding-bottom:20px">
+          <div class="grab"></div>
+          <div class="route" style="font-size:14px"><div class="row"><span class="dot" style="background:var(--ok)"></span>Minieh, Main Street</div><div class="row"><span class="dot" style="background:var(--bad)"></span>Tripoli</div></div>
+          <div class="row" style="margin-top:12px">
+            <div class="vcard sel"><div class="em">🚕</div><div style="font-weight:700">Taxi</div><div class="p">$5.00</div><span class="badge b-ok">Fixed price</span></div>
+            <div class="vcard"><div class="em">🛺</div><div style="font-weight:700">Tuk-tuk</div><div class="p">$3.00</div><span class="badge b-ok">Fixed price</span></div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <b style="font-size:15px">Driver:</b>
+            <span style="position:relative;display:inline-block"><span class="chip">Man</span><span class="chip" style="position:absolute;left:0;top:0;background:var(--y);border-color:var(--y)" data-out="10.4">Man</span></span>
+            <span style="position:relative;display:inline-block;border-radius:999px" data-press="10.4"><span class="chip">Woman</span><span class="chip sel" style="position:absolute;left:0;top:0" data-in="10.4" data-fx="fade">Woman</span></span>
+          </div>
+                    <div class="muted" style="font-size:13px;margin:8px 0">💵 You pay the driver in cash at the end of the ride.</div>
+          <div class="btn" data-press="12.2">Request Taxi</div>
+        </div>
+      </div>
+      <!-- searching -->
+      <div class="layer" data-in="12.6" data-fx="fade" style="background:rgba(255,255,255,.96)">
+        <div style="position:absolute;left:180px;top:300px">
+          <div class="pulse" data-ph="0" style="left:-110px;top:-110px;width:220px;height:220px"></div>
+          <div class="pulse" data-ph="0.6" style="left:-110px;top:-110px;width:220px;height:220px"></div>
+          <div class="pulse" data-ph="1.2" style="left:-110px;top:-110px;width:220px;height:220px"></div>
+          <div style="position:absolute;left:-40px;top:-40px;width:80px;height:80px;border-radius:50%;background:var(--y);display:flex;align-items:center;justify-content:center;font-size:40px">🚕</div>
+        </div>
+        <div style="position:absolute;top:470px;left:0;right:0;text-align:center;padding:0 26px">
+          <div style="font-size:23px;font-weight:800">Looking for a driver…</div>
+          <div class="muted" style="font-size:16px;margin-top:8px">We are sending your request to nearby drivers.</div>
+        </div>
+        <div class="btn red" style="position:absolute;left:22px;right:22px;bottom:30px">Cancel ride</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. DISPATCH ============ -->
+<section class="scene" data-dur="11">
+  <div class="cap" style="width:560px">
+    <span class="kicker" data-in="0.2">Step 3 · Matching</span>
+    <h2 data-in="0.4">Finding a driver</h2>
+    <ul>
+      <li data-in="1.0">Sent to the <b>10 nearest online drivers</b> within 5 km</li>
+      <li data-in="2.8">Only the right vehicle type, and a woman driver if requested</li>
+      <li data-in="5.0">The <b>first driver to tap Accept</b> gets the ride</li>
+      <li data-in="8.2">No answer in 60 s? The passenger can simply try again</li>
+    </ul>
+  </div>
+  <!-- radar map -->
+  <div data-in="0.6" data-fx="pop" style="position:absolute;left:720px;top:190px;width:600px;height:600px;border-radius:50%;overflow:hidden;background:#EEF0E6;box-shadow:0 30px 80px rgba(60,40,0,.2)">
+    <svg width="600" height="600" style="position:absolute;inset:0">
+      <g stroke="#fff" stroke-width="14" stroke-linecap="round"><path d="M0 300H600M300 0V600M60 80L560 520M80 540L540 60" /></g>
+      <g data-in="2.0" data-fx="fade" stroke="#E0A800" stroke-width="3" stroke-dasharray="7 7">
+        <line x1="300" y1="300" x2="190" y2="200"/><line x1="300" y1="300" x2="420" y2="230"/><line x1="300" y1="300" x2="380" y2="420"/><line x1="300" y1="300" x2="200" y2="400"/>
+      </g>
+      <line x1="300" y1="300" x2="420" y2="230" stroke="#2E7D32" stroke-width="6" data-in="7.6" data-fx="fade"/>
+    </svg>
+    <div class="pulse" data-ph="0" style="left:50px;top:50px;width:500px;height:500px"></div>
+    <div class="pulse" data-ph="0.9" style="left:50px;top:50px;width:500px;height:500px"></div>
+    <div style="position:absolute;left:276px;top:270px;font-size:44px">🙋‍♀️</div>
+    <div style="position:absolute;left:170px;top:178px;font-size:34px">🚕</div>
+    <div style="position:absolute;left:400px;top:208px;font-size:34px">🚕</div>
+    <div style="position:absolute;left:360px;top:398px;font-size:34px">🚕</div>
+    <div style="position:absolute;left:180px;top:378px;font-size:34px">🚕</div>
+    <div style="position:absolute;left:500px;top:470px;font-size:34px;opacity:.35">🛺</div>
+    <div style="position:absolute;left:70px;top:430px;font-size:34px;opacity:.35">🛺</div>
+    <div style="position:absolute;left:520px;top:120px;font-size:30px;opacity:.3">🚕</div>
+    <div class="badge b-ok" style="position:absolute;left:380px;top:180px;font-size:16px" data-in="7.8" data-fx="pop">Accepted!</div>
+  </div>
+  <div style="position:absolute;left:830px;top:830px;width:380px;text-align:center;font-size:20px;color:#7a5a00;font-weight:600" data-in="1.2">5 km search radius · faded = offline / other type</div>
+  <!-- driver phone -->
+  <div class="phone" style="left:1420px;top:148px" data-in="0.8" data-fx="right">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer pad" style="background:var(--sf)">
+        <div class="card" style="display:flex;align-items:center;gap:12px;border:none">
+          <span class="dot" style="background:var(--ok);width:16px;height:16px"></span>
+          <div><div style="font-size:19px;font-weight:800">You're online</div><div class="muted small">Waiting for ride requests nearby.</div></div>
+        </div>
+        <div class="btn ghost" style="margin-top:10px;height:44px;font-size:15px">Go offline</div>
+        <div style="font-size:18px;font-weight:800;margin:18px 0 10px">Ride requests</div>
+        <div class="muted small" data-out="3.2">No requests right now. Keep the app open.</div>
+        <div class="card" style="border:2px solid var(--y);margin-top:-18px" data-in="3.4" data-fx="up">
+          <div class="row" style="justify-content:space-between"><b style="font-size:16px">New ride request</b><span class="badge b-pend">🚕 Taxi</span></div>
+          <div class="route" style="margin:12px 0;font-size:15px"><div class="row"><span class="dot" style="background:var(--ok)"></span>Minieh, Main Street</div><div class="row"><span class="dot" style="background:var(--bad)"></span>Tripoli</div></div>
+          <div class="row" style="justify-content:space-between"><span style="font-size:24px;font-weight:900">$5.00</span><span class="muted small">0.6 km away · Lina ★4.9</span></div>
+          <div class="muted small" style="margin:4px 0 12px">Commission: $0.50 · paid in cash</div>
+          <div class="row"><div class="btn ghost" style="flex:1;height:46px">Skip</div><div class="btn green" style="flex:2;height:46px" data-press="7.2">Accept</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. THE RIDE ============ -->
+<section class="scene" data-dur="16">
+  <div class="cap" style="width:560px;top:150px">
+    <span class="kicker" data-in="0.2">Step 4 · The ride</span>
+    <h2 data-in="0.4" style="font-size:56px">Both phones stay in sync</h2>
+    <div class="stepper" data-in="0.8">
+      <div class="st"><span class="n">1</span>Driver accepted, on the way<div class="hl" data-in="0.8" data-fx="fade" data-out="4.0"><span class="n">1</span>Driver accepted, on the way</div></div>
+      <div class="st"><span class="n">2</span>Driver arrived at pickup<div class="hl" data-in="4.0" data-fx="fade" data-out="8.0"><span class="n">2</span>Driver arrived at pickup</div></div>
+      <div class="st"><span class="n">3</span>Ride in progress<div class="hl" data-in="8.0" data-fx="fade" data-out="12.0"><span class="n">3</span>Ride in progress</div></div>
+      <div class="st"><span class="n">4</span>Arrived: pay cash &amp; rate<div class="hl" data-in="12.0" data-fx="fade"><span class="n">4</span>Arrived: pay cash &amp; rate</div></div>
+    </div>
+    <div class="note" data-in="1.6">Every status change is pushed live to the other phone, with a notification. The passenger can call the driver at any time.</div>
+  </div>
+  <!-- passenger phone -->
+  <div style="position:absolute;left:870px;top:84px;width:384px;text-align:center;font-size:22px;font-weight:800;color:#7a5a00" data-in="0.3">PASSENGER</div>
+  <div class="phone" style="left:870px;top:130px" data-in="0.3" data-fx="up">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer"><svg class="mapsvg" data-map="r6" width="360" height="760"></svg></div>
+      <div class="layer clear">
+        <svg width="360" height="760" style="position:absolute;left:0;top:0">
+          <path id="r6a" d="M320 90 L320 170 L250 170" fill="none" stroke="#9E9E9E" stroke-width="4" stroke-dasharray="6 6"/>
+          <path id="r6b" d="M250 170 L250 230 L190 270 L150 330 L95 340" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="250" cy="170" r="10" fill="#2E7D32" stroke="#fff" stroke-width="3"/>
+          <circle cx="95" cy="340" r="10" fill="#D32F2F" stroke="#fff" stroke-width="3"/>
+          <g data-along="r6a" data-from="0.5" data-to="3.6"><g data-along="r6b" data-from="8.3" data-to="11.6"><circle r="15" fill="#FFC107" stroke="#1A1A1A" stroke-width="3"/><text y="6" text-anchor="middle" font-size="16">🚕</text></g></g>
+        </svg>
+      </div>
+      <div class="sheet" style="height:300px">
+        <div class="grab"></div>
+        <div style="position:relative;height:60px">
+          <div style="position:absolute;inset:0" data-out="4.0"><div style="font-size:20px;font-weight:800">Your driver is on the way</div><div class="muted small">Arriving in about 3 min</div></div>
+          <div style="position:absolute;inset:0" data-in="4.0" data-fx="fade" data-out="8.0"><div style="font-size:20px;font-weight:800">Your driver has arrived</div><div class="muted small">Please meet your driver at the pickup point.</div></div>
+          <div style="position:absolute;inset:0" data-in="8.0" data-fx="fade" data-out="12.0"><div style="font-size:20px;font-weight:800">On the way to your destination</div><div class="muted small">Tripoli · about 12 min</div></div>
+        </div>
+        <div class="row" style="margin-top:12px"><div class="avatar">AK</div><div style="flex:1"><b>Ahmad K. ★4.8</b><div class="muted small">Toyota Corolla · White · T 123456</div></div><div class="btn ghost" style="width:72px;height:42px;font-size:14px">📞 Call</div></div>
+        <div class="row" style="margin-top:14px;justify-content:space-between;font-size:16px"><span class="muted">Cash</span><b style="font-size:22px">$5.00</b></div>
+        <div class="btn red" style="margin-top:12px;height:44px;font-size:15px" data-out="8.0">Cancel ride</div>
+      </div>
+      <!-- completed -->
+      <div class="layer pad" data-in="12.0" data-fx="up" style="text-align:center;padding-top:110px">
+        <div style="font-size:64px">🎉</div>
+        <div style="font-size:26px;font-weight:800;margin-top:8px">You have arrived!</div>
+        <div class="card" style="margin:22px 0;background:var(--yl);border-color:var(--y)"><div class="muted small">Please pay in cash to the driver</div><div style="font-size:44px;font-weight:900">$5.00</div><div class="muted small">≈ 447,500 LBP</div></div>
+        <div style="font-size:17px;font-weight:600">How was your ride with Ahmad?</div>
+        <div style="font-size:40px;letter-spacing:6px;margin:10px 0;color:#ddd;position:relative">★★★★★<div style="position:absolute;inset:0;color:var(--y)" data-in="13.4" data-fx="fade">★★★★★</div></div>
+        <div class="btn" data-press="14.6">Submit rating</div>
+      </div>
+    </div>
+  </div>
+  <!-- driver phone -->
+  <div style="position:absolute;left:1340px;top:84px;width:384px;text-align:center;font-size:22px;font-weight:800;color:#7a5a00" data-in="0.5">DRIVER</div>
+  <div class="phone" style="left:1340px;top:130px" data-in="0.5" data-fx="up">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer"><svg class="mapsvg" data-map="r6d" width="360" height="760"></svg></div><div class="layer clear"><svg width="360" height="760" style="position:absolute;left:0;top:0"><path d="M320 90 L320 170 L250 170 L250 230 L190 270 L150 330 L95 340" fill="none" stroke="#1565C0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><circle cx="250" cy="170" r="10" fill="#2E7D32" stroke="#fff" stroke-width="3"/><circle cx="95" cy="340" r="10" fill="#D32F2F" stroke="#fff" stroke-width="3"/></svg></div>
+      <div class="sheet" style="height:330px">
+        <div class="grab"></div>
+        <div style="position:relative;height:30px;font-size:21px;font-weight:800">
+          <div style="position:absolute;inset:0" data-out="4.0">Go to the pickup point</div>
+          <div style="position:absolute;inset:0" data-in="4.0" data-fx="fade" data-out="8.0">Waiting for the passenger</div>
+          <div style="position:absolute;inset:0" data-in="8.0" data-fx="fade" data-out="12.0">Drive to the destination</div>
+          <div style="position:absolute;inset:0" data-in="12.0" data-fx="fade">Ride completed ✓</div>
+        </div>
+        <div class="row" style="margin-top:12px"><div class="avatar" style="background:#E8DAF7">LH</div><div style="flex:1"><b>Lina H. ★4.9</b><div class="muted small">Minieh → Tripoli</div></div><div class="btn ghost" style="width:72px;height:42px;font-size:14px">📞</div></div>
+        <div class="btn ghost" style="margin-top:14px;height:44px;font-size:15px">🧭 Navigate</div>
+        <div style="position:relative;height:52px;margin-top:12px">
+          <div class="btn" style="position:absolute;inset:0" data-press="3.5" data-out="4.0">I've arrived</div>
+          <div class="btn" style="position:absolute;inset:0" data-in="4.0" data-fx="fade" data-press="7.5" data-out="8.0">Start ride</div>
+          <div class="btn green" style="position:absolute;inset:0;font-size:16px" data-in="8.0" data-fx="fade" data-press="11.5" data-out="12.0">Complete: collect $5.00 cash</div>
+          <div class="btn dark" style="position:absolute;inset:0;font-size:16px" data-in="12.0" data-fx="fade">Collect $5.00 in cash</div>
+        </div>
+        <div class="muted small" style="text-align:center;margin-top:10px" data-in="12.4">$0.50 commission added to your balance</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. CAR RENTAL ============ -->
+<section class="scene" data-dur="17">
+  <div class="cap" style="width:560px;top:150px">
+    <span class="kicker" data-in="0.2">Step 5 · Rent a car</span>
+    <h2 data-in="0.4" style="font-size:56px">Rent a car for days</h2>
+    <ul>
+      <li data-in="1.0">Browse cars by place, dates and type</li>
+      <li data-in="4.4"><b>Self-drive</b> or <b>with a driver</b></li>
+      <li data-in="6.4">Pick dates and see the total</li>
+      <li data-in="9.6">The <b>owner confirms</b>, hands over the car, then marks it returned</li>
+      <li data-in="14.4">Self-drive requires an uploaded driver's license</li>
+    </ul>
+  </div>
+  <div style="position:absolute;left:870px;top:84px;width:384px;text-align:center;font-size:22px;font-weight:800;color:#7a5a00" data-in="0.3">RENTER</div>
+  <div class="phone" style="left:870px;top:130px" data-in="0.3" data-fx="up">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <!-- list -->
+      <div class="layer pad" style="background:var(--sf)">
+        <div class="apptitle">Rent a car</div>
+        <div class="row" style="gap:6px;margin:8px 0 12px"><span class="chip" style="font-size:13px;padding:6px 10px">All places</span><span class="chip" style="font-size:13px;padding:6px 10px">Any dates</span><span class="chip" style="font-size:13px;padding:6px 10px">Any type</span></div>
+        <div class="card" style="margin-bottom:10px;padding:0;overflow:hidden" data-press="3.2">
+          <div style="height:110px;background:linear-gradient(135deg,#FFE08A,#FFC107);display:flex;align-items:center;justify-content:center;font-size:64px">🚗</div>
+          <div style="padding:10px 14px"><div class="row" style="justify-content:space-between"><b style="font-size:17px">Kia Picanto 2021</b><b>$25<span class="muted small">/day</span></b></div><div class="muted small">Automatic · 4 seats · Gasoline · Minieh</div></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="height:110px;background:linear-gradient(135deg,#D7E6F7,#9DC0EA);display:flex;align-items:center;justify-content:center;font-size:64px">🚙</div>
+          <div style="padding:10px 14px"><div class="row" style="justify-content:space-between"><b style="font-size:17px">Hyundai Tucson 2020</b><b>$55<span class="muted small">/day</span></b></div><div class="muted small">Automatic · 5 seats · Diesel · Tripoli</div></div>
+        </div>
+        <div class="tabbar"><div><i></i>Ride</div><div class="on"><i></i>Rent a car</div><div><i></i>Activity</div><div><i></i>Profile</div></div>
+      </div>
+      <!-- detail -->
+      <div class="layer" data-in="3.7" data-fx="left" data-out="9.4">
+        <div style="height:190px;background:linear-gradient(135deg,#FFE08A,#FFC107);display:flex;align-items:center;justify-content:center;font-size:96px;padding-top:30px">🚗</div>
+        <div style="padding:12px 20px">
+          <b style="font-size:21px">Kia Picanto 2021</b><div class="muted small">Owner: Sami Rent · Agency</div>
+          <div class="label">Rental type</div>
+          <div class="row"><span class="chip sel" style="font-size:14px">Self-drive · $25/day</span><span class="chip" style="font-size:14px">With driver · $45</span></div>
+          <div class="label">Choose dates</div>
+          <div class="card" style="padding:10px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:6px">November 2026</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:13px;text-align:center" id="cal"></div>
+          </div>
+          <div class="row" style="justify-content:space-between;margin-top:10px;font-size:15px" data-in="6.6"><span>3 days × $25</span><b style="font-size:20px">Total $75</b></div>
+          <div class="muted small" data-in="6.8">Deposit $150, paid to the owner in person and returned at the end.</div>
+          <div class="btn" style="margin-top:10px" data-press="8.6">Send booking request</div>
+        </div>
+      </div>
+      <!-- booking status -->
+      <div class="layer pad" data-in="9.4" data-fx="left">
+        <div class="apptitle">Booking</div>
+        <div class="card" style="margin-top:10px">
+          <div class="row" style="justify-content:space-between"><b style="font-size:17px">Kia Picanto 2021</b>
+            <span style="position:relative;width:96px;height:24px;text-align:right">
+              <span class="badge b-pend" style="position:absolute;right:0" data-out="10.9">Pending</span>
+              <span class="badge b-ok" style="position:absolute;right:0" data-in="10.9" data-fx="pop" data-out="12.7">Confirmed</span>
+              <span class="badge b-info" style="position:absolute;right:0" data-in="12.7" data-fx="pop" data-out="14.6">Active</span>
+              <span class="badge b-dark" style="position:absolute;right:0" data-in="14.6" data-fx="pop">Completed</span>
+            </span></div>
+          <div class="muted" style="font-size:15px;margin-top:8px">Nov 20 → Nov 23 · 3 days · Self-drive</div>
+          <div class="row" style="justify-content:space-between;margin-top:10px"><span class="muted">Total</span><b style="font-size:20px">$75.00</b></div>
+          <div class="row" style="justify-content:space-between"><span class="muted">Deposit (in person)</span><b>$150.00</b></div>
+        </div>
+        <div style="position:relative;margin-top:14px;height:70px;font-size:15px">
+          <div class="card" style="position:absolute;inset:0;background:var(--yl);border-color:var(--y)" data-out="10.9">⏳ Waiting for the owner to confirm.</div>
+          <div class="card" style="position:absolute;inset:0;background:var(--okl);border-color:#B7DDB9" data-in="10.9" data-fx="fade">✅ Confirmed! Contact the owner to arrange the handover.</div>
+        </div>
+        <div class="toast" data-in="9.6" data-out="10.8">✔ <b>Request sent.</b> The owner will review and confirm your booking.</div>
+      </div>
+    </div>
+  </div>
+  <!-- owner phone -->
+  <div style="position:absolute;left:1340px;top:84px;width:384px;text-align:center;font-size:22px;font-weight:800;color:#7a5a00" data-in="9.0">CAR OWNER</div>
+  <div class="phone" style="left:1340px;top:130px" data-in="9.0" data-fx="right">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer pad" style="background:var(--sf)">
+        <div class="apptitle">Requests</div>
+        <div class="card" style="margin-top:10px">
+          <div class="row" style="justify-content:space-between"><b style="font-size:17px">Kia Picanto 2021</b>
+            <span style="position:relative;width:96px;height:24px">
+              <span class="badge b-pend" style="position:absolute;right:0" data-out="10.9">Pending</span>
+              <span class="badge b-ok" style="position:absolute;right:0" data-in="10.9" data-fx="pop" data-out="12.7">Confirmed</span>
+              <span class="badge b-info" style="position:absolute;right:0" data-in="12.7" data-fx="pop" data-out="14.6">Active</span>
+              <span class="badge b-dark" style="position:absolute;right:0" data-in="14.6" data-fx="pop">Completed</span>
+            </span></div>
+          <div class="row" style="margin-top:10px"><div class="avatar" style="background:#E8DAF7;width:40px;height:40px;font-size:15px">LH</div><div><b>Lina Haddad</b><div class="muted small">✔ Driver's license uploaded</div></div></div>
+          <div class="muted" style="font-size:15px;margin-top:8px">Nov 20 → Nov 23 · Self-drive · $75</div>
+          <div style="position:relative;height:52px;margin-top:14px">
+            <div class="row" style="position:absolute;inset:0" data-out="10.9"><div class="btn red" style="flex:1">Reject</div><div class="btn green" style="flex:1.4" data-press="10.4">Confirm</div></div>
+            <div class="btn" style="position:absolute;inset:0" data-in="10.9" data-fx="fade" data-press="12.2" data-out="12.7">🔑 Hand over car</div>
+            <div class="btn dark" style="position:absolute;inset:0" data-in="12.7" data-fx="fade" data-press="14.1" data-out="14.6">Mark as returned</div>
+            <div class="card" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--okl);border-color:#B7DDB9" data-in="14.6" data-fx="fade">Done · $7.50 platform commission</div>
+          </div>
+        </div>
+        <div class="tabbar"><div><i></i>My cars</div><div class="on"><i></i>Requests</div><div><i></i>Earnings</div><div><i></i>Profile</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. WORK WITH US ============ -->
+<section class="scene" data-dur="13">
+  <div class="cap">
+    <span class="kicker" data-in="0.2">Step 6 · Drivers &amp; owners</span>
+    <h2 data-in="0.4">Join as a driver or car owner</h2>
+    <ul>
+      <li data-in="1.0">Apply from <b>Profile → Work with us</b></li>
+      <li data-in="3.4">Enter vehicle details and choose a plan: <b>10% commission</b> or <b>monthly fee</b></li>
+      <li data-in="6.8">Upload ID, license, registration, insurance and a photo</li>
+      <li data-in="9.6">The admin reviews and approves, then you <b>switch modes</b> in the same app</li>
+    </ul>
+  </div>
+  <div class="phone" style="left:1060px;top:148px" data-in="0.4" data-fx="up">
+    <div class="screen">
+      <div class="notch"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="layer pad" style="background:var(--sf)">
+        <div class="row"><div class="avatar">AK</div><div><b style="font-size:19px">Ahmad Khaled</b><div class="muted small">+961 71 123 456 · Verified</div></div></div>
+        <div class="label" style="margin-top:22px">Work with us</div>
+        <div class="card" style="margin-bottom:10px" data-press="2.4"><b>🚕 Become a driver</b><div class="muted small">Drive your taxi or tuk-tuk</div></div>
+        <div class="card"><b>🔑 Rent out your car</b><div class="muted small">For individuals and agencies</div></div>
+        <div class="label" style="margin-top:20px">App mode</div>
+        <div class="row"><span class="chip sel">Passenger</span><span class="chip" style="opacity:.4">Driver</span><span class="chip" style="opacity:.4">Car owner</span></div>
+        <div class="tabbar"><div><i></i>Ride</div><div><i></i>Rent a car</div><div><i></i>Activity</div><div class="on"><i></i>Profile</div></div>
+      </div>
+      <div class="layer pad" data-in="2.9" data-fx="left" data-out="6.3">
+        <div class="apptitle">Driver account</div>
+        <div class="label">Vehicle type</div>
+        <div class="row"><span class="chip sel">🚕 Taxi</span><span class="chip">🛺 Tuk-tuk</span></div>
+        <div class="row" style="gap:8px"><div style="flex:1"><div class="label">Make</div><div class="field"><span data-type="Toyota" data-in="3.4"></span></div></div><div style="flex:1"><div class="label">Model</div><div class="field"><span data-type="Corolla" data-in="3.9"></span></div></div></div>
+        <div class="label">Plate number</div><div class="field"><span data-type="T 123456" data-in="4.4"></span></div>
+        <div class="label">Billing plan</div>
+        <div class="card" style="border-color:var(--y);background:var(--yl);padding:10px 14px"><b>Commission</b><div class="muted small">Pay 10% of each completed fare.</div></div>
+        <div class="card" style="margin-top:8px;padding:10px 14px"><b>Monthly subscription</b><div class="muted small">Pay a fixed $30 per month, no commission.</div></div>
+        <div class="btn" style="margin-top:14px" data-press="5.8">Submit application</div>
+      </div>
+      <div class="layer pad" data-in="6.3" data-fx="left" data-out="10.0">
+        <div class="apptitle">Documents</div>
+        <div class="muted small">Upload clear photos or PDF files of your documents.</div>
+        <div style="margin-top:16px">
+          <div class="card row" style="margin-bottom:8px;justify-content:space-between"><b>ID card</b><span style="position:relative;display:inline-block;width:26px;height:26px"><span class="empty"></span><span class="check" style="position:absolute;left:0;top:0" data-in="6.9" data-fx="pop"></span></span></div>
+          <div class="card row" style="margin-bottom:8px;justify-content:space-between"><b>Driver's license</b><span style="position:relative;display:inline-block;width:26px;height:26px"><span class="empty"></span><span class="check" style="position:absolute;left:0;top:0" data-in="7.3" data-fx="pop"></span></span></div>
+          <div class="card row" style="margin-bottom:8px;justify-content:space-between"><b>Car registration</b><span style="position:relative;display:inline-block;width:26px;height:26px"><span class="empty"></span><span class="check" style="position:absolute;left:0;top:0" data-in="7.7" data-fx="pop"></span></span></div>
+          <div class="card row" style="margin-bottom:8px;justify-content:space-between"><b>Insurance</b><span style="position:relative;display:inline-block;width:26px;height:26px"><span class="empty"></span><span class="check" style="position:absolute;left:0;top:0" data-in="8.1" data-fx="pop"></span></span></div>
+          <div class="card row" style="justify-content:space-between"><b>Vehicle photo</b><span style="position:relative;display:inline-block;width:26px;height:26px"><span class="empty"></span><span class="check" style="position:absolute;left:0;top:0" data-in="8.5" data-fx="pop"></span></span></div>
+        </div>
+        <div class="card" style="margin-top:14px;background:var(--yl);border-color:var(--y)" data-in="8.9"><b>⏳ Application under review</b><div class="muted small">We will review your application shortly.</div></div>
+      </div>
+      <div class="layer pad" data-in="10.6" data-fx="up" style="text-align:center;padding-top:150px">
+        <div style="font-size:70px">✅</div>
+        <div style="font-size:25px;font-weight:800;margin-top:10px">You are approved to drive</div>
+        <div class="muted" style="margin:10px 0 26px;font-size:16px">Switch to driver mode and go online to receive rides.</div>
+        <div class="btn" data-press="12.2">Switch to driver mode</div>
+      </div>
+    </div>
+  </div>
+  <!-- admin approve card -->
+  <div class="card" style="position:absolute;left:1480px;top:520px;width:360px;padding:22px;border:none;box-shadow:0 24px 60px rgba(60,40,0,.22)" data-in="9.6" data-fx="right" data-out="12.4">
+    <div class="muted small" style="font-weight:700;letter-spacing:1px">ADMIN PANEL · DRIVERS</div>
+    <div style="font-size:21px;font-weight:800;margin:8px 0 4px">Ahmad Khaled</div>
+    <div class="muted small">Taxi · Toyota Corolla · 5/5 documents</div>
+    <div class="row" style="margin-top:14px"><div class="btn red" style="flex:1;height:44px">Reject</div><div class="btn green" style="flex:1;height:44px" data-press="10.2">Approve</div></div>
+  </div>
+</section>
+
+<!-- ============ 9. ADMIN PANEL ============ -->
+<section class="scene" data-dur="22">
+  <div class="cap" style="top:150px;width:620px">
+    <span class="kicker" data-in="0.2">Step 7 · Admin panel</span>
+    <h2 data-in="0.4" style="font-size:56px">You run everything from the web</h2>
+  </div>
+  <div class="browser" data-in="0.6" data-fx="right">
+    <div class="bbar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i><div class="url">🔒 Cedra · Admin</div></div>
+    <div class="shot"><img src="../admin-guide/img/02-dashboard.png" data-kb="0,3.2"></div>
+    <div class="shot" data-in="3.0" data-fx="fade"><img src="../admin-guide/img/03-drivers-pending.png" data-kb="3,2.8"></div>
+    <div class="shot" data-in="5.6" data-fx="fade"><img src="../admin-guide/img/04-driver-detail.png" data-kb="5.6,2.8"></div>
+    <div class="shot" data-in="8.2" data-fx="fade"><img src="../admin-guide/img/11-rides.png" data-kb="8.2,2.8"></div>
+    <div class="shot" data-in="10.8" data-fx="fade"><img src="../admin-guide/img/15-pricing.png" data-kb="10.8,2.8"></div>
+    <div class="shot" data-in="13.4" data-fx="fade"><img src="../admin-guide/img/18-route-fares.png" data-kb="13.4,2.8"></div>
+    <div class="shot" data-in="16.0" data-fx="fade"><img src="../admin-guide/img/20-billing.png" data-kb="16,2.8"></div>
+    <div class="shot" data-in="18.6" data-fx="fade"><img src="../admin-guide/img/25-settings.png" data-kb="18.6,3.4"></div>
+  </div>
+  <div class="acap" data-in="0.8" data-out="3.0"><h3>Dashboard</h3><p>Rides and revenue today, drivers online, pending approvals and money owed.</p></div>
+  <div class="acap" data-in="3.0" data-out="5.6"><h3>Drivers</h3><p>New applications wait here until you approve them.</p></div>
+  <div class="acap" data-in="5.6" data-out="8.2"><h3>Driver details</h3><p>Check every document, then approve, reject or suspend.</p></div>
+  <div class="acap" data-in="8.2" data-out="10.8"><h3>Rides</h3><p>See every ride and its status. Cancel one if needed.</p></div>
+  <div class="acap" data-in="10.8" data-out="13.4"><h3>Pricing</h3><p>Per vehicle type: a <b>fixed route price</b>, or a price <b>calculated per km</b>.</p></div>
+  <div class="acap" data-in="13.4" data-out="16.0"><h3>Route fares</h3><p>Real street prices between towns, e.g. Minieh → Tripoli: Taxi $5, Tuk-tuk $3.</p></div>
+  <div class="acap" data-in="16.0" data-out="18.6"><h3>Billing</h3><p>Who owes what. Record cash, Whish or OMT payments and activate monthly plans.</p></div>
+  <div class="acap" data-in="18.6"><h3>Settings</h3><p>Commission %, monthly fees, LBP rate, max debt and support phone.</p></div>
+  <div class="pager" data-in="0.8">
+    <i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+  <div class="pager" data-in="3.0" data-fx="fade" data-out="5.6"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="pager" data-in="5.6" data-fx="fade" data-out="8.2"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="pager" data-in="8.2" data-fx="fade" data-out="10.8"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+  <div class="pager" data-in="10.8" data-fx="fade" data-out="13.4"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+  <div class="pager" data-in="13.4" data-fx="fade" data-out="16.0"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
+  <div class="pager" data-in="16.0" data-fx="fade" data-out="18.6"><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+  <div class="pager" data-in="18.6" data-fx="fade"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
+</section>
+
+<!-- ============ 10. MONEY ============ -->
+<section class="scene" data-dur="12">
+  <div class="center" style="top:80px" data-in="0.2"><span class="kicker">Step 8 · Money</span></div>
+  <div class="center" style="top:140px;font-size:58px;font-weight:800;letter-spacing:-1px" data-in="0.4">How the money moves</div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1A1A1A"/></marker></defs>
+    <path d="M470 400 H 760" stroke="#1A1A1A" stroke-width="5" fill="none" marker-end="url(#ah)" data-draw="1.4" data-dur="0.7"/>
+    <path d="M1110 400 H 1400" stroke="#1A1A1A" stroke-width="5" fill="none" marker-end="url(#ah)" data-draw="3.0" data-dur="0.7"/>
+    <path d="M470 800 H 760" stroke="#1A1A1A" stroke-width="5" fill="none" marker-end="url(#ah)" data-draw="7.4" data-dur="0.7"/>
+    <path d="M1110 800 H 1400" stroke="#1A1A1A" stroke-width="5" fill="none" marker-end="url(#ah)" data-draw="8.6" data-dur="0.7"/>
+  </svg>
+  <div class="money" style="left:160px;top:300px" data-in="0.9"><div class="em">🙋‍♀️</div><h4>Passenger</h4><p>Pays the fare in cash</p></div>
+  <div class="arrow-lbl" style="left:555px;top:330px" data-in="1.8" data-fx="pop">$5.00 cash</div>
+  <div class="money" style="left:790px;top:300px" data-in="1.6"><div class="em">🚕</div><h4>Driver</h4><p>Keeps the fare</p></div>
+  <div class="arrow-lbl" style="left:1150px;top:300px;text-align:center;line-height:1.25" data-in="3.4" data-fx="pop">10% commission<br><span style="font-size:17px">or $30 / month plan</span></div>
+  <div class="money" style="left:1430px;top:300px" data-in="3.2"><div class="em">🏢</div><h4>Platform balance</h4><p>Paid at the office or via <b>Whish / OMT</b></p></div>
+  <div class="warn" style="left:1430px;top:525px;width:300px;font-size:20px;padding:14px 18px" data-in="5.0" data-fx="pop">⚠️ Balance over <b>$20</b>? The driver can't go online until it is paid.</div>
+
+  <div class="money" style="left:160px;top:700px" data-in="6.6"><div class="em">🧳</div><h4>Renter</h4><p>Pays the owner + deposit in person</p></div>
+  <div class="arrow-lbl" style="left:575px;top:730px" data-in="7.8" data-fx="pop">$75 + deposit</div>
+  <div class="money" style="left:790px;top:700px" data-in="7.6"><div class="em">🔑</div><h4>Car owner</h4><p>Returns the deposit at the end</p></div>
+  <div class="arrow-lbl" style="left:1155px;top:730px" data-in="9.0" data-fx="pop">10% = $7.50</div>
+  <div class="money" style="left:1430px;top:700px" data-in="8.8"><div class="em">🏢</div><h4>Platform balance</h4><p>Owner's rental commission</p></div>
+</section>
+
+<!-- ============ 11. OUTRO ============ -->
+<section class="scene" data-dur="7">
+  <div class="center" style="top:190px">
+    <div data-in="0.2" data-fx="pop" style="display:inline-block">
+      <div class="logo" style="width:120px;height:120px;border-radius:32px"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h14l2 5v4a1 1 0 0 1-1 1h-1"/><path d="M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M3 12h18"/><path d="M10 4h4v3h-4z"/></svg></div>
+    </div>
+  </div>
+  <div class="center" style="top:350px;font-size:90px;font-weight:900;letter-spacing:-2px" data-in="0.5">Cedra</div>
+  <div class="center" style="top:480px;font-size:44px;font-weight:700;color:#8a6200" data-in="1.0">Ride. Drive. Rent.</div>
+  <div class="center" style="top:620px">
+    <span class="pill" data-in="1.6" data-fx="pop">🚕 Taxi &amp; tuk-tuk rides</span>
+    <span class="pill" data-in="1.9" data-fx="pop">🚗 Car rental</span>
+    <span class="pill" data-in="2.2" data-fx="pop">🌐 العربية · English</span>
+  </div>
+  <div class="center" style="top:780px;font-size:28px;color:#555" data-in="2.8">Minieh &amp; North Lebanon today, all of Lebanon next.</div>
+</section>
+
+</div>
+<div id="hud">Space: pause · ←/→: seek 5s</div>
+
+<script>
+(function(){
+  const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+  const ease=x=>{x=clamp(x);return 1-Math.pow(1-x,3)};
+  const easeIO=x=>{x=clamp(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+
+  /* --- map builder (stylized North Lebanon street map) --- */
+  function mapSVG(){
+    return `<rect width="360" height="760" fill="#EEF0E6"/>
+      <path d="M0 0 H60 C70 120 40 200 55 300 C65 380 30 450 20 760 H0Z" fill="#BFE3F2"/>
+      <g fill="#E2E6D6"><rect x="120" y="40" width="90" height="70" rx="6"/><rect x="270" y="200" width="70" height="80" rx="6"/><rect x="110" y="380" width="120" height="70" rx="6"/><rect x="250" y="420" width="90" height="90" rx="6"/><rect x="70" y="520" width="100" height="90" rx="6"/><rect x="210" y="560" width="120" height="70" rx="6"/></g>
+      <rect x="275" y="300" width="60" height="70" rx="8" fill="#D6E9C8"/>
+      <g stroke="#fff" stroke-width="14" stroke-linecap="round" fill="none">
+        <path d="M320 0 V760"/><path d="M0 170 H360"/><path d="M250 0 V230 L190 270 L150 330 L95 340 L60 360"/>
+        <path d="M60 470 H360"/><path d="M190 270 L190 760"/><path d="M95 340 L95 760"/><path d="M0 90 H360"/>
+      </g>
+      <g stroke="#FFE7A0" stroke-width="7" stroke-linecap="round" fill="none"><path d="M320 0 V760"/></g>
+      <text x="262" y="150" font-size="13" font-weight="700" fill="#6b6b6b">MINIEH</text>
+      <text x="100" y="375" font-size="13" font-weight="700" fill="#6b6b6b">TRIPOLI</text>
+      <text x="8" y="640" font-size="12" fill="#5a8fa8" transform="rotate(-80 8 640)">Mediterranean</text>`;
+  }
+  document.querySelectorAll('svg.mapsvg').forEach(s=>s.innerHTML=mapSVG());
+
+  /* calendar */
+  const cal=document.getElementById('cal');
+  if(cal){
+    let h='';['M','T','W','T','F','S','S'].forEach(d=>h+=`<div style="color:#999;font-weight:700">${d}</div>`);
+    for(let i=0;i<6;i++) h+='<div></div>';
+    for(let d=1;d<=30;d++){
+      const inR=d>=20&&d<=23, at = d===20?5.0:(d===23?5.6:5.8);
+      h+= inR ? `<div style="position:relative;padding:3px 0">${d}<div data-in="${at}" data-fx="pop" style="position:absolute;inset:0;padding:3px 0;border-radius:6px;background:${d===20||d===23?'#FFC107':'#FFF4D1'};font-weight:700">${d}</div></div>`
+              : `<div style="padding:3px 0;${d<18?'color:#ccc':''}">${d}</div>`;
+    }
+    cal.innerHTML=h;
+  }
+
+  /* --- timeline --- */
+  const scenes=[...document.querySelectorAll('.scene')];
+  let acc=0;
+  scenes.forEach(s=>{
+    s._start=acc; s._dur=+s.dataset.dur; acc+=s._dur;
+    s._els=[...s.querySelectorAll('[data-in],[data-out],[data-press],[data-type],[data-draw],[data-along],[data-kb],.pulse,[data-flow]')];
+    s._els.forEach(el=>{
+      if(el.dataset.type!==undefined){el._full=el.dataset.type;}
+      if(el.dataset.draw!==undefined){el._len=el.getTotalLength();el.style.strokeDasharray=el._len;}
+    });
+  });
+  const TOTAL=acc; window.TOTAL=TOTAL;
+
+  function render(t){
+    for(const s of scenes){
+      const L=t-s._start;
+      const vis=L>=0&&L<s._dur;
+      s.style.visibility=vis?'visible':'hidden';
+      if(!vis) continue;
+      const first=s===scenes[0], last=s===scenes[scenes.length-1];
+      const fin=first?1:clamp(L/0.45), fout=last?clamp((s._dur-L)/0.8):clamp((s._dur-L)/0.35);
+      s.style.opacity=Math.min(fin,fout);
+      for(const el of s._els){
+        const d=el.dataset; const tf=[]; let op=null;
+        if(d.in!==undefined){
+          const p=ease((L-+d.in)/0.5); op=p;
+          const fx=d.fx||'up';
+          if(fx==='up') tf.push(`translateY(${(1-p)*28}px)`);
+          else if(fx==='left') tf.push(`translateX(${(1-p)*-60}px)`);
+          else if(fx==='right') tf.push(`translateX(${(1-p)*60}px)`);
+          else if(fx==='pop') tf.push(`scale(${0.7+0.3*easeBack(clamp((L-+d.in)/0.45))})`);
+        }
+        if(d.out!==undefined){ const q=clamp((L-+d.out)/0.3); op=(op===null?1:op)*(1-q); }
+        if(d.press!==undefined){
+          const k=L-+d.press;
+          if(k>-0.05&&k<0.55){
+            const dip=k>0&&k<0.3?Math.sin(Math.PI*k/0.3):0;
+            tf.push(`scale(${1-0.06*dip})`);
+            const r=clamp(k/0.55); el.style.boxShadow=`0 0 0 ${4+r*22}px rgba(255,193,7,${0.65*(1-r)})`;
+          } else el.style.boxShadow='';
+        }
+        if(d.type!==undefined){
+          const n=Math.floor(clamp((L-+d.in)*13,0,el._full.length));
+          const typing=L>+d.in-0.3 && n<el._full.length;
+          el.innerHTML=el._full.slice(0,n)+(typing||(n===el._full.length&&L-+d.in-n/13<0.4)?'<span class="caret"></span>':'');
+          op=null; tf.length=0;
+        }
+        if(d.draw!==undefined){
+          el.style.strokeDashoffset=el._len*(1-easeIO((L-+d.draw)/+(d.dur||1)));
+        }
+        if(d.along!==undefined){
+          const path=document.getElementById(d.along);
+          const p=easeIO((L-+d.from)/(+d.to-+d.from));
+          const len=path.getTotalLength(); const pt=path.getPointAtLength(p*len);
+          if(el.parentNode.closest&&el.parentNode.closest('[data-along]')&&el!==el.parentNode.closest('[data-along]')){
+            // nested: express relative to outer group's position
+            const outer=el.parentNode.closest('[data-along]');
+            const ox=outer._pt?outer._pt.x:0, oy=outer._pt?outer._pt.y:0;
+            if(L<+d.from){el.setAttribute('transform','');}
+            else el.setAttribute('transform',`translate(${pt.x-ox},${pt.y-oy})`);
+          } else { el._pt=pt; el.setAttribute('transform',`translate(${pt.x},${pt.y})`); }
+        }
+        if(d.kb!==undefined){
+          const [a,b]=d.kb.split(',').map(Number);
+          el.style.transform=`scale(${1+0.07*easeIO((L-a)/b)})`;
+        }
+        if(el.classList.contains('pulse')){
+          const ph=(((L+ +(d.ph||0))/1.8)%1+1)%1;
+          tf.push(`scale(${0.25+ph*1.1})`); op=(1-ph)*0.9;
+        }
+        if(d.flow!==undefined){
+          const [x1,x2,y,o]=d.flow.split(',').map(Number);
+          const ph=((L*0.45+o)%1);
+          el.style.left=(x1+(x2-x1)*ph)+'px'; el.style.top=y+'px';
+          el.style.opacity=Math.sin(Math.PI*ph);
+          continue;
+        }
+        if(op!==null) el.style.opacity=op;
+        if(d.in!==undefined||d.press!==undefined||el.classList.contains('pulse')) el.style.transform=tf.join(' ');
+      }
+    }
+  }
+  function easeBack(x){const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);}
+  window.render=render;
+
+  /* --- preview player --- */
+  const stage=document.getElementById('stage');
+  const capture=/capture/.test(location.search);
+  if(capture){document.body.classList.add('capture');render(0);return;}
+  function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`scale(${s})`;
+    stage.style.left=((innerWidth-1920*s)/2)+'px';stage.style.top=((innerHeight-1080*s)/2)+'px';}
+  addEventListener('resize',fit);fit();
+  let t0=performance.now(),off=0,paused=false;
+  const now=()=>paused?off:off+(performance.now()-t0)/1000;
+  addEventListener('keydown',e=>{
+    if(e.code==='Space'){ if(paused){t0=performance.now();paused=false;}else{off=now();paused=true;} }
+    if(e.code==='ArrowRight'||e.code==='ArrowLeft'){off=clamp(now()+(e.code==='ArrowRight'?5:-5),0,TOTAL);t0=performance.now();}
+  });
+  (function loop(){let t=now(); if(t>=TOTAL){off=0;t0=performance.now();t=0;} render(t); requestAnimationFrame(loop);})();
+})();
+</script>
+</body>
+</html>
