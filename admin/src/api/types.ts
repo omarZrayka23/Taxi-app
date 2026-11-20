@@ -378,6 +378,8 @@ export interface BillingAccount {
 
 export interface BillingAccountDetail {
   user: EmbeddedUser;
+  /** The driver's vehicle type fee; null for non-drivers. */
+  monthlyFeeUsd: number | null;
   balanceUsd: number;
   subscription: Subscription | null;
   entries: LedgerEntry[];

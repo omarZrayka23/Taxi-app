@@ -26,7 +26,6 @@ import { ErrorState, LoadingState } from '../components/QueryState';
 import { StatusBadge } from '../components/StatusBadge';
 import { formatDate, formatDateTime, formatUsd, humanize } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
-import { useVehicleTypes } from '../lib/queries';
 
 const LEDGER_COLORS: Record<string, string> = {
   RIDE_COMMISSION: 'blue',
@@ -155,7 +154,7 @@ export default function BillingAccountPage() {
       <DataTable columns={ledgerColumns} rows={sortedEntries} rowKey={(e) => e.id} emptyMessage="No ledger entries yet." />
 
       <PaymentModal userId={userId} opened={dialog === 'payment'} balanceUsd={balanceUsd} onClose={() => setDialog(null)} />
-      <SubscriptionModal userId={userId} phone={user.phone} opened={dialog === 'subscription'} onClose={() => setDialog(null)} />
+      <SubscriptionModal userId={userId} monthlyFeeUsd={query.data.monthlyFeeUsd} opened={dialog === 'subscription'} onClose={() => setDialog(null)} />
       <AdjustmentModal userId={userId} opened={dialog === 'adjustment'} onClose={() => setDialog(null)} />
     </>
   );
@@ -221,14 +220,7 @@ function PaymentModal({ userId, opened, onClose, balanceUsd }: ModalProps & { ba
   );
 }
 
-function SubscriptionModal({ userId, phone, opened, onClose }: ModalProps & { phone: string }) {
-  const vehicleTypes = useVehicleTypes();
-  // The account payload has no vehicle info, so find the driver profile by phone.
-  const driver = useQuery({
-    queryKey: ['admin', 'billing', 'driver-type', userId],
-    queryFn: async () => (await adminApi.drivers({ search: phone, page: 1 })).items.find((d) => d.userId === userId) ?? null,
-    enabled: opened,
-  });
+function SubscriptionModal({ userId, monthlyFeeUsd, opened, onClose }: ModalProps & { monthlyFeeUsd: number | null }) {
   const [months, setMonths] = useState<number | string>(1);
 
   useEffect(() => {
@@ -244,14 +236,13 @@ function SubscriptionModal({ userId, phone, opened, onClose }: ModalProps & { ph
 
   const n = Number(months);
   const valid = Number.isInteger(n) && n >= 1 && n <= 12;
-  const type = vehicleTypes.data?.find((t) => t.code === driver.data?.vehicleType);
 
   return (
     <Modal opened={opened} onClose={onClose} title="Activate subscription months" centered>
       <Stack>
         <Text size="sm" c="dimmed">
           Charges months × the monthly fee to the balance and extends the subscription period.
-          {type && ` Monthly fee (${type.nameEn}): ${formatUsd(type.monthlyFeeUsd)}.`}
+          {monthlyFeeUsd !== null && ` Monthly fee: ${formatUsd(monthlyFeeUsd)}.`}
         </Text>
         <SegmentedControl
           data={['1', '2', '3', '6', '12']}

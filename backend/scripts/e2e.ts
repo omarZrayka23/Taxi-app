@@ -216,6 +216,8 @@ async function main() {
     await ok('POST', '/driver/online', D, { lat: minieh.lat, lng: minieh.lng });
     billing = await ok('GET', '/driver/billing', D);
     assert.equal(billing.ledger.length, 3);
+    const dAccount = await ok('GET', `/admin/billing/accounts/${dUserId}`, admin);
+    assert.equal(dAccount.monthlyFeeUsd, 30);
     const accounts = await ok('GET', '/admin/billing/accounts', admin);
     assert.ok(accounts.items.some((a: any) => a.user.id === dUserId && a.balanceUsd === 30));
     log('commission debt limit, payment, monthly plan, subscription gating, ledger');

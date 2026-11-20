@@ -207,7 +207,7 @@ Admins automatically have an approved `PLATFORM` owner profile, so the admin pan
 | GET | `/admin/settings` | — | `{ commissionPercent, rentalCommissionPercent, lbpRate, maxDebtUsd, searchRadiusKm, offerTimeoutSec, fareRoundingUsd, supportPhone }` |
 | PUT | `/admin/settings` | partial of the above | same shape |
 | GET | `/admin/billing/accounts` | `?search&page` | page of `{ user: {id,name,phone}, kinds: ('DRIVER'\|'OWNER')[], billingPlan: BillingPlan\|null, balanceUsd, subscription: Subscription\|null }` |
-| GET | `/admin/billing/accounts/:userId` | — | `{ user, balanceUsd, subscription, entries: LedgerEntry[] }` |
+| GET | `/admin/billing/accounts/:userId` | — | `{ user, monthlyFeeUsd: number\|null /* the driver's vehicle type fee, null for non-drivers */, balanceUsd, subscription, entries: LedgerEntry[] }` |
 | POST | `/admin/billing/accounts/:userId/payments` | `{ amountUsd (>0), method: PaymentMethod, note? }` | `{ entry, balanceUsd }` |
 | POST | `/admin/billing/accounts/:userId/subscription` | `{ months (1..12) }` | `{ subscription, balanceUsd }` — charges `months × monthlyFee` and extends the period |
 | POST | `/admin/billing/accounts/:userId/adjustments` | `{ amountUsd (±), note }` | `{ entry, balanceUsd }` |

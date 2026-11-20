@@ -63,6 +63,7 @@ adminBillingRouter.get('/accounts/:userId', async (req, res) => {
   ]);
   res.json({
     user: userSummary(user),
+    monthlyFeeUsd: user.driverProfile ? num(user.driverProfile.vehicle.monthlyFeeUsd) : null,
     balanceUsd,
     subscription: serializeSubscription(subscription),
     entries: entries.map(serializeLedgerEntry),
