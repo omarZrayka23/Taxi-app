@@ -12,7 +12,9 @@
     "seed": "tsx prisma/seed.ts",
     "generate": "prisma generate",
     "test:e2e": "tsx scripts/e2e.ts",
-    "dev:db": "tsx scripts/dev-db.ts"
+    "dev:db": "tsx scripts/dev-db.ts",
+    "db:migrate-vehicle-types": "tsx scripts/migrate-vehicle-types.ts",
+    "test:migrate-vehicle-types": "tsx scripts/check-vehicle-types-migration.ts"
   },
   "keywords": [],
   "author": "",

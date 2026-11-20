@@ -28,6 +28,24 @@ Express 5 + TypeScript + Prisma (MySQL 8) + Socket.IO. The contract is in [../do
 | `npm run test:e2e` | Full end-to-end scenario against a throwaway MySQL (downloads MySQL on first run, ~1–3 min) |
 | `npm run typecheck` | TypeScript check |
 | `npm run seed` | Idempotent seed; never overwrites values the admin changed |
+| `npm run db:migrate-vehicle-types` | Upgrade an existing database to admin-managed vehicle types (see below) |
+| `npm run test:migrate-vehicle-types` | Checks that upgrade against a throwaway MySQL built from the old schema |
+
+## Upgrading an existing database to vehicle types
+
+Vehicle types used to be a fixed list (Taxi, Tuk-tuk) with prices in a `PricingRule` table and monthly fees in
+the `monthlyFeeTaxiUsd` / `monthlyFeeTuktukUsd` settings. They are now rows in the `VehicleType` table that the
+admin manages. A database created before this change can't take a plain `db push` (the foreign keys would
+fail), so upgrade it like this:
+
+1. **Back up the database first**, e.g. `mysqldump -u root -p cedra > cedra-backup.sql`.
+2. Stop the API, then run `npm run db:migrate-vehicle-types` (uses `DATABASE_URL`). It converts the vehicle type
+   columns, creates Taxi and Tuk-tuk from the old pricing rules and monthly fees, adds the foreign keys, drops
+   `PricingRule` and removes the two old fee settings.
+3. Run `npm run seed` to add the extra starter vehicle types, then start the API.
+
+The script is safe to run again, and on a fresh database it just creates the tables. If a ride, driver or route
+fare uses a vehicle type that has no row, it stops and lists them without adding the foreign keys.
 
 ## How it works
 
