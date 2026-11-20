@@ -18,7 +18,8 @@ import { coordLabel, errorMessage, formatUsd, placeName } from '@/lib/format';
 import { getCurrentPosition, reverseGeocode } from '@/lib/location';
 import { Banner, Button, Chip, IconButton, Price, Row, Stars, TextField, Txt } from '@/components/ui';
 import { PlacePickerModal } from '@/components/ride/PlacePickerModal';
-import { DriverCard, EstimateCard, RouteSummary, vehicleIcon } from '@/components/ride/RideBits';
+import { DriverCard, EstimateCard, RouteSummary } from '@/components/ride/RideBits';
+import { VehicleIconView, vehicleName } from '@/lib/vehicles';
 import { colors, radius, spacing } from '@/theme';
 
 /** `approx` = address is only a coordinate label (reverse geocoding failed). */
@@ -28,7 +29,7 @@ type Step = 'pickup' | 'dropoff' | 'dropoffPin' | 'confirm';
 const DELTA = { latitudeDelta: 0.02, longitudeDelta: 0.02 };
 
 export default function PassengerHome() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const center = useRef<LatLng>({ lat: MINIEH.latitude, lng: MINIEH.longitude });
@@ -42,7 +43,7 @@ export default function PassengerHome() {
   const [pickup, setPickup] = useState<Point | null>(null);
   const [dropoff, setDropoff] = useState<Point | null>(null);
   const [placesOpen, setPlacesOpen] = useState(false);
-  const [vehicle, setVehicle] = useState<VehicleType>('TAXI');
+  const [vehicle, setVehicle] = useState<VehicleType | null>(null);
   const myGender: Gender = useAuth((s) => s.user?.gender) ?? 'MALE';
   const [driverGender, setDriverGender] = useState<Gender>(myGender);
   const [note, setNote] = useState('');
@@ -104,10 +105,11 @@ export default function PassengerHome() {
   const estimateList = estimates.data?.estimates;
   // The Man/Woman row only exists once at least one woman driver is registered.
   const showGenderRow = estimates.data?.hasWomenDrivers ?? false;
-  const womanAvailable = estimateList?.find((e) => e.vehicleType === vehicle)?.womanDriverNearby ?? false;
+  const selectedEstimate = estimateList?.find((e) => e.vehicleType === vehicle);
+  const womanAvailable = selectedEstimate?.womanDriverNearby ?? false;
   useEffect(() => {
     const list = estimateList;
-    if (list?.length && !list.some((e) => e.vehicleType === vehicle)) setVehicle(list[0].vehicleType);
+    if (list?.length && (vehicle == null || !list.some((e) => e.vehicleType === vehicle))) setVehicle(list[0].vehicleType);
   }, [estimateList, vehicle]);
   // Default to the passenger's own gender, falling back to Man when no woman driver is nearby.
   useEffect(() => {
@@ -185,9 +187,9 @@ export default function PassengerHome() {
   }) => {
     const body =
       input ??
-      (pickup && dropoff
+      (pickup && dropoff && vehicle
         ? {
-            vehicleType: vehicle,
+            vehicleType: vehicle as VehicleType,
             pickup,
             dropoff,
             note: note.trim() || undefined,
@@ -303,7 +305,7 @@ export default function PassengerHome() {
               anchor={{ x: 0.5, y: 0.5 }}
             >
               <View style={styles.driverMarker}>
-                <Ionicons name={vehicleIcon(ride.vehicleType)} size={18} color={colors.text} />
+                <VehicleIconView icon={ride.vehicle.icon} size={18} color={colors.text} />
               </View>
             </Marker>
           ) : null}
@@ -401,6 +403,10 @@ export default function PassengerHome() {
                     <Banner tone="danger" message={errorMessage(estimates.error)} />
                     <Button title={t('common.retry')} small onPress={() => void estimates.refetch()} />
                   </>
+                ) : estimateList && estimateList.length === 0 ? (
+                  <Txt variant="muted" style={{ textAlign: 'center', margin: spacing.lg }}>
+                    {t('ride.noVehicles')}
+                  </Txt>
                 ) : (
                   (estimateList ?? []).map((e) => (
                     <EstimateCard
@@ -440,10 +446,10 @@ export default function PassengerHome() {
                 {t('ride.cashNotice')}
               </Txt>
               <Button
-                title={t('ride.request', { vehicle: t(`vehicle.${vehicle}`) })}
+                title={t('ride.request', { vehicle: selectedEstimate ? vehicleName(selectedEstimate.vehicle, i18n.language) : '' })}
                 onPress={() => void requestRide()}
                 loading={busy}
-                disabled={!estimateList?.length}
+                disabled={!estimateList?.length || !selectedEstimate}
               />
             </>
           )}
@@ -475,7 +481,7 @@ function RidePanel({
   onRetryOther: (gender: Gender) => void;
   busy: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [stars, setStars] = useState(0);
   const [rating, setRating] = useState(false);
 
@@ -502,7 +508,7 @@ function RidePanel({
   const fareRow = (
     <Row style={{ justifyContent: 'space-between', marginTop: spacing.sm }}>
       <Txt variant="muted">
-        {t(`vehicle.${ride.vehicleType}`)} · {t('ride.cash')}
+        {vehicleName(ride.vehicle, i18n.language)} · {t('ride.cash')}
       </Txt>
       <Price usd={ride.fareUsd} lbp={ride.fareLbp} />
     </Row>

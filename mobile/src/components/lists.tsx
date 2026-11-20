@@ -7,6 +7,7 @@ import { fileUrl } from '@/config';
 import { formatDate, formatDateTime, formatUsd } from '@/lib/format';
 import { Card, EmptyView, ErrorView, LoadingView, Row, StatusBadge, Txt, type IconName } from '@/components/ui';
 import { RouteSummary } from '@/components/ride/RideBits';
+import { vehicleName } from '@/lib/vehicles';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '@/theme';
 import { ActivityIndicator } from 'react-native';
@@ -64,7 +65,7 @@ export function PagedList<T extends { id: number }>({
 }
 
 export function RideHistoryCard({ ride, perspective }: { ride: Ride; perspective: 'passenger' | 'driver' }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const counterpart = perspective === 'passenger' ? ride.driver?.name : ride.passenger?.name;
   const myRating = perspective === 'passenger' ? ride.ratingByPassenger : ride.ratingByDriver;
   return (
@@ -76,7 +77,7 @@ export function RideHistoryCard({ ride, perspective }: { ride: Ride; perspective
       <RouteSummary from={ride.pickupAddress} to={ride.dropoffAddress} />
       <Row style={{ justifyContent: 'space-between', marginTop: spacing.sm }}>
         <Txt variant="small">
-          {t(`vehicle.${ride.vehicleType}`)}
+          {vehicleName(ride.vehicle, i18n.language)}
           {counterpart ? ` · ${counterpart}` : ''}
           {myRating ? ` · ${'★'.repeat(myRating)}` : ''}
         </Txt>

@@ -93,6 +93,8 @@
     "pickup": "الانطلاق",
     "dropoff": "الوجهة",
     "fixedPrice": "سعر ثابت",
+    "upTo": "حتى {{count}} ركاب",
+    "noVehicles": "لا توجد مركبات متاحة حالياً",
     "notePlaceholder": "ملاحظة للسائق (اختياري)",
     "cashNotice": "تدفع للسائق نقداً عند نهاية المشوار.",
     "request": "اطلب {{vehicle}}",
@@ -126,10 +128,6 @@
     "DRIVER": "السائق",
     "ADMIN": "الدعم",
     "SYSTEM": "النظام"
-  },
-  "vehicle": {
-    "TAXI": "تاكسي",
-    "TUKTUK": "توك توك"
   },
   "places": {
     "search": "ابحث عن مكان…",

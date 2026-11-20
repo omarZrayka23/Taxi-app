@@ -93,6 +93,8 @@
     "pickup": "Pickup",
     "dropoff": "Destination",
     "fixedPrice": "Fixed price",
+    "upTo": "up to {{count}} passengers",
+    "noVehicles": "No vehicles available right now",
     "notePlaceholder": "Note for the driver (optional)",
     "cashNotice": "You pay the driver in cash at the end of the ride.",
     "request": "Request {{vehicle}}",
@@ -126,10 +128,6 @@
     "DRIVER": "the driver",
     "ADMIN": "support",
     "SYSTEM": "the system"
-  },
-  "vehicle": {
-    "TAXI": "Taxi",
-    "TUKTUK": "Tuk-tuk"
   },
   "places": {
     "search": "Search places…",

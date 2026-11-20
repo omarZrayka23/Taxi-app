@@ -4,7 +4,9 @@ export type UserRole = 'USER' | 'ADMIN';
 export type UserStatus = 'ACTIVE' | 'BLOCKED';
 export type Language = 'ar' | 'en';
 export type Gender = 'MALE' | 'FEMALE';
-export type VehicleType = 'TAXI' | 'TUKTUK';
+/** Vehicle type code, managed by the admin (e.g. TAXI, TUKTUK, VAN). */
+export type VehicleType = string;
+export type VehicleIcon = 'CAR' | 'TUKTUK' | 'MOTORCYCLE' | 'VAN' | 'BUS';
 export type PricingMode = 'CALCULATED' | 'FIXED_ROUTE';
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
 export type BillingPlan = 'COMMISSION' | 'MONTHLY';
@@ -27,10 +29,20 @@ export type LedgerType = 'RIDE_COMMISSION' | 'RENTAL_COMMISSION' | 'SUBSCRIPTION
 export const ACTIVE_RIDE_STATUSES: RideStatus[] = ['REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS'];
 export const isRideActive = (s: RideStatus) => ACTIVE_RIDE_STATUSES.includes(s);
 
+/** Survives the type being turned off, so history keeps its name. */
+export interface VehicleSummary {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  icon: VehicleIcon;
+  capacity: number;
+}
+
 export interface DriverProfile {
   id: number;
   userId: number;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   vehicleMake: string;
   vehicleModel: string;
   vehicleColor: string;
@@ -100,6 +112,7 @@ export interface RideDriver {
   name: string;
   phone: string;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   vehicleMake: string;
   vehicleModel: string;
   vehicleColor: string;
@@ -113,6 +126,7 @@ export interface Ride {
   id: number;
   status: RideStatus;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   driverGender: Gender | null;
   pricingMode: PricingMode;
   pickupLat: number;
@@ -143,6 +157,7 @@ export interface Ride {
 
 export interface RideEstimate {
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   fareUsd: number;
   fareLbp: number;
   pricingMode: PricingMode;
@@ -221,6 +236,12 @@ export interface Subscription {
 
 export interface VehicleTypeConfig {
   type: VehicleType;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  icon: VehicleIcon;
+  capacity: number;
+  monthlyFeeUsd: number;
   mode: PricingMode;
   baseFare: number;
   perKm: number;
@@ -232,8 +253,9 @@ export interface AppConfig {
   lbpRate: number;
   commissionPercent: number;
   rentalCommissionPercent: number;
-  monthlyFeeTaxiUsd: number;
-  monthlyFeeTuktukUsd: number;
+  /** Legacy, unused: read monthlyFeeUsd from vehicleTypes. */
+  monthlyFeeTaxiUsd?: number;
+  monthlyFeeTuktukUsd?: number;
   supportPhone: string;
   vehicleTypes: VehicleTypeConfig[];
 }

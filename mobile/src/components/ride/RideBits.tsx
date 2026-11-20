@@ -1,16 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import type { RideDriver, RideEstimate, VehicleType } from '@/api/types';
+import type { RideDriver, RideEstimate } from '@/api/types';
 import { formatKm, formatMin } from '@/lib/format';
 import { callPhone } from '@/lib/links';
 import { Badge, Button, Price, Rating, Row, Txt } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import { Pressable } from 'react-native';
-
-export function vehicleIcon(v: VehicleType) {
-  return v === 'TUKTUK' ? ('bicycle' as const) : ('car' as const);
-}
+import { VehicleIconView, vehicleName } from '@/lib/vehicles';
 
 export function EstimateCard({
   estimate,
@@ -21,20 +18,21 @@ export function EstimateCard({
   selected: boolean;
   onPress: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
       style={[styles.estimate, selected && { borderColor: colors.primaryDark, backgroundColor: colors.primaryLight }]}
     >
       <View style={styles.vehicleIcon}>
-        <Ionicons name={vehicleIcon(estimate.vehicleType)} size={26} color={colors.text} />
+        <VehicleIconView icon={estimate.vehicle.icon} size={26} color={colors.text} />
       </View>
       <View style={{ flex: 1 }}>
-        <Txt variant="subtitle">{t(`vehicle.${estimate.vehicleType}`)}</Txt>
+        <Txt variant="subtitle">{vehicleName(estimate.vehicle, i18n.language)}</Txt>
         <Txt variant="small">
           {formatKm(estimate.distanceKm)} · {formatMin(estimate.durationMin)}
         </Txt>
+        <Txt variant="small">{t('ride.upTo', { count: estimate.vehicle.capacity })}</Txt>
         {estimate.pricingMode === 'FIXED_ROUTE' ? (
           <View style={{ marginTop: 4 }}>
             <Badge label={t('ride.fixedPrice')} tone="success" />

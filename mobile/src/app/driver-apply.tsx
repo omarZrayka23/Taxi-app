@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { driverApi } from '@/api/endpoints';
 import { useAppConfig, useDocuments } from '@/api/queries';
-import type { BillingPlan, DriverApplyInput, VehicleType } from '@/api/types';
+import type { BillingPlan, DriverApplyInput } from '@/api/types';
 import { useAuth } from '@/store/auth';
 import { errorMessage, formatUsd } from '@/lib/format';
+import { VehicleIconView, vehicleName } from '@/lib/vehicles';
 import { DRIVER_DOC_TYPES, DocumentsChecklist, missingDocTypes } from '@/components/DocumentsChecklist';
 import {
   Banner,
@@ -21,7 +22,7 @@ import {
   TextField,
   Txt,
 } from '@/components/ui';
-import { spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 export default function DriverApply() {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ export default function DriverApply() {
 }
 
 function StatusSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dp = useAuth((s) => s.user?.driverProfile)!;
   const { data: config } = useAppConfig();
   const [plan, setPlan] = useState<BillingPlan>(dp.billingPlan);
@@ -73,7 +74,7 @@ function StatusSection() {
   };
 
   const tone = dp.status === 'APPROVED' ? 'success' : dp.status === 'PENDING' ? 'warning' : 'danger';
-  const fee = dp.vehicleType === 'TUKTUK' ? config?.monthlyFeeTuktukUsd : config?.monthlyFeeTaxiUsd;
+  const fee = config?.vehicleTypes.find((v) => v.type === dp.vehicleType)?.monthlyFeeUsd;
 
   return (
     <>
@@ -89,7 +90,7 @@ function StatusSection() {
       />
       <Card>
         <KeyValue label={t('driverApply.status.label')} value={<StatusBadge status={dp.status} />} />
-        <KeyValue label={t('driverApply.vehicleType')} value={t(`vehicle.${dp.vehicleType}`)} />
+        <KeyValue label={t('driverApply.vehicleType')} value={vehicleName(dp.vehicle, i18n.language)} />
         <KeyValue
           label={t('driverApply.vehicle')}
           value={`${dp.vehicleMake} ${dp.vehicleModel} · ${dp.vehicleColor}`}
@@ -137,11 +138,12 @@ function StatusSection() {
 }
 
 function ApplyForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prev = useAuth((s) => s.user?.driverProfile);
   const { data: config } = useAppConfig();
+  const types = config?.vehicleTypes ?? [];
   const [form, setForm] = useState<DriverApplyInput>({
-    vehicleType: prev?.vehicleType ?? 'TAXI',
+    vehicleType: prev?.vehicleType ?? '',
     vehicleMake: prev?.vehicleMake ?? '',
     vehicleModel: prev?.vehicleModel ?? '',
     vehicleColor: prev?.vehicleColor ?? '',
@@ -155,7 +157,9 @@ function ApplyForm() {
   const [loading, setLoading] = useState(false);
 
   const set = <K extends keyof DriverApplyInput>(k: K, v: DriverApplyInput[K]) => setForm((f) => ({ ...f, [k]: v }));
-  const fee = form.vehicleType === 'TUKTUK' ? config?.monthlyFeeTuktukUsd : config?.monthlyFeeTaxiUsd;
+  // The previous type may have been turned off since: fall back to the first active one.
+  const selected = types.find((v) => v.type === form.vehicleType) ?? types[0];
+  const fee = selected?.monthlyFeeUsd;
 
   const submit = async () => {
     const errs: typeof errors = {};
@@ -163,12 +167,12 @@ function ApplyForm() {
       if (!form[k].trim()) errs[k] = t('common.required');
     });
     setErrors(errs);
-    if (Object.keys(errs).length || !agree) return;
+    if (Object.keys(errs).length || !agree || !selected) return;
     setLoading(true);
     setError(null);
     try {
       const body = Object.fromEntries(
-        Object.entries(form).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]),
+        Object.entries({ ...form, vehicleType: selected.type }).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]),
       ) as unknown as DriverApplyInput;
       const { driverProfile } = await driverApi.apply(body);
       useAuth.getState().setDriverProfile(driverProfile);
@@ -182,14 +186,35 @@ function ApplyForm() {
   return (
     <View>
       <SectionTitle>{t('driverApply.vehicleType')}</SectionTitle>
-      <Segmented<VehicleType>
-        options={[
-          { value: 'TAXI', label: t('vehicle.TAXI') },
-          { value: 'TUKTUK', label: t('vehicle.TUKTUK') },
-        ]}
-        value={form.vehicleType}
-        onChange={(v) => set('vehicleType', v)}
-      />
+      {types.map((v) => {
+        const active = v.type === selected?.type;
+        return (
+          <Pressable
+            key={v.type}
+            onPress={() => set('vehicleType', v.type)}
+            style={[
+              {
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+                borderWidth: 2,
+                borderColor: colors.border,
+                borderRadius: radius.lg,
+                padding: spacing.md,
+                marginBottom: spacing.sm,
+                backgroundColor: colors.white,
+              },
+              active && { borderColor: colors.primaryDark, backgroundColor: colors.primaryLight },
+            ]}
+          >
+            <VehicleIconView icon={v.icon} size={26} color={colors.text} />
+            <View style={{ flex: 1 }}>
+              <Txt variant="subtitle">{vehicleName(v, i18n.language)}</Txt>
+              <Txt variant="small">{t('ride.upTo', { count: v.capacity })}</Txt>
+            </View>
+          </Pressable>
+        );
+      })}
       <SectionTitle>{t('driverApply.vehicle')}</SectionTitle>
       <TextField
         label={t('driverApply.make')}
@@ -247,7 +272,7 @@ function ApplyForm() {
         title={t('driverApply.submit')}
         onPress={submit}
         loading={loading}
-        disabled={!agree}
+        disabled={!agree || !selected}
         style={{ marginTop: spacing.md }}
       />
       <Txt variant="small" style={{ marginTop: spacing.sm }}>

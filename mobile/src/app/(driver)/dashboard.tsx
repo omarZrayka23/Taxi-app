@@ -26,11 +26,12 @@ import {
   StatusBadge,
   Txt,
 } from '@/components/ui';
-import { RouteSummary, vehicleIcon } from '@/components/ride/RideBits';
+import { RouteSummary } from '@/components/ride/RideBits';
+import { VehicleIconView, vehicleName } from '@/lib/vehicles';
 import { colors, radius, spacing } from '@/theme';
 
 export default function DriverDashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dp = useAuth((s) => s.user?.driverProfile);
   const socketConnected = useRideStore((s) => s.socketConnected);
   const offers = useRideStore((s) => s.offers);
@@ -133,7 +134,7 @@ export default function DriverDashboard() {
           <View style={[styles.dot, { backgroundColor: online ? colors.success : colors.textMuted }]} />
         </Row>
         <Row style={{ marginTop: spacing.md }} gap={spacing.md}>
-          <Badge label={t(`vehicle.${dp.vehicleType}`)} />
+          <Badge label={vehicleName(dp.vehicle, i18n.language)} />
           <Badge label={t(`billingPlan.${dp.billingPlan}`)} tone="info" />
           <Rating value={dp.ratingAvg} />
           {online && !socketConnected ? <Badge label={t('driver.reconnecting')} tone="warning" /> : null}
@@ -241,7 +242,7 @@ function OfferCard({ offer }: { offer: Offer }) {
     <Card style={styles.offer}>
       <Row style={{ justifyContent: 'space-between', marginBottom: spacing.sm }}>
         <Row>
-          <Ionicons name={vehicleIcon(ride.vehicleType)} size={20} color={colors.text} />
+          <VehicleIconView icon={ride.vehicle.icon} size={20} color={colors.text} />
           <Txt variant="subtitle">{t('driver.newRequest')}</Txt>
         </Row>
         {secondsLeft != null ? <Badge label={`${secondsLeft}s`} tone="warning" /> : null}
