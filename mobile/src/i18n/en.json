@@ -474,6 +474,18 @@
     "LICENSE_REQUIRED": "Self-drive rentals require your driver's license. Please upload it first.",
     "NOT_AVAILABLE": "The car is not available for these dates.",
     "MIN_DAYS": "The rental is shorter than the minimum days.",
-    "OWNER_NOT_APPROVED": "Your owner account must be approved before adding cars."
+    "OWNER_NOT_APPROVED": "Your owner account must be approved before adding cars.",
+    "ALREADY_APPLIED": "You have already applied.",
+    "ALREADY_RATED": "You already rated this ride.",
+    "DRIVER_BUSY": "Finish your current ride first.",
+    "GO_ONLINE_FIRST": "Go online to accept rides.",
+    "INVALID_BOOKING_STATE": "This booking can no longer be changed this way.",
+    "INVALID_DATES": "Please check the dates: the start can’t be in the past, the return must be after the start, and bookings are limited to 90 days.",
+    "INVALID_RIDE_STATE": "This ride can no longer be changed this way.",
+    "MODE_NOT_OFFERED": "This rental option is not offered for this car.",
+    "NOT_A_DRIVER": "You have not applied as a driver.",
+    "OWN_LISTING": "You cannot book your own car.",
+    "TOO_MANY_PHOTOS": "A car can have at most 12 photos.",
+    "UNSUPPORTED_FILE": "This file type is not supported. Please choose a JPG or PNG photo."
   }
 }

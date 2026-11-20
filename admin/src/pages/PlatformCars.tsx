@@ -31,7 +31,8 @@ import { humanize } from '../lib/format';
 import { notifyError, useApiMutation } from '../lib/notify';
 import { keys, usePlaces } from '../lib/queries';
 
-const MAX_PHOTOS = 6;
+const MAX_PHOTOS = 12; // backend: at most 12 per car, 6 per upload
+const MAX_PER_UPLOAD = 6;
 const platformColumns = listingColumns.filter((c) => c.key !== 'owner');
 
 /** Admin-owned cars, managed through the same /owner/listings endpoints as normal owners. */
@@ -61,8 +62,8 @@ export function PlatformCars() {
     <>
       <Group justify="space-between" mb="md" wrap="wrap">
         <Text size="sm" c="dimmed" maw={640}>
-          Cars owned by Cedra. No rental commission is charged on these. New cars start as <b>Pending</b> — approve them
-          from the car's panel to make them visible to renters.
+          Cars owned by Cedra. No rental commission is charged on these. New cars go live straight away; switch off{' '}
+          <b>Active</b> in the car's panel to hide one from renters.
         </Text>
         <Button
           leftSection={<IconPlus size={16} />}
@@ -155,6 +156,10 @@ function PlatformCarDrawer({
 
   const onFiles = (files: File[]) => {
     if (!listing || !files.length) return;
+    if (files.length > MAX_PER_UPLOAD) {
+      notifyError(new Error(`Add at most ${MAX_PER_UPLOAD} photos at a time.`), 'Too many photos');
+      return;
+    }
     if (files.length > remaining) {
       notifyError(new Error(`You can add at most ${remaining} more photo(s) (max ${MAX_PHOTOS}).`), 'Too many photos');
       return;
@@ -294,7 +299,7 @@ function toInput(v: FormValues): ListingInput {
     fuelType: v.fuelType,
     color: v.color.trim(),
     placeId: Number(v.placeId),
-    description: v.description.trim() || undefined,
+    description: v.description.trim() || null,
     selfDrive: v.selfDrive,
     pricePerDayUsd: v.selfDrive ? Number(v.pricePerDayUsd) : null,
     withDriver: v.withDriver,
@@ -324,7 +329,7 @@ function ListingFormModal({
       make: (v) => (v.trim() ? null : 'Required'),
       model: (v) => (v.trim() ? null : 'Required'),
       color: (v) => (v.trim() ? null : 'Required'),
-      year: (v) => (isNum(v) && Number(v) >= 1970 && Number(v) <= maxYear ? null : `1970–${maxYear}`),
+      year: (v) => (isNum(v) && Number(v) >= 1980 && Number(v) <= maxYear ? null : `1980–${maxYear}`),
       seats: (v) => (isNum(v) && Number(v) >= 1 ? null : 'At least 1'),
       placeId: (v) => (v ? null : 'Choose a location'),
       pricePerDayUsd: (v, all) => (!all.selfDrive || (isNum(v) && Number(v) > 0) ? null : 'Enter the daily price'),
@@ -374,7 +379,7 @@ function ListingFormModal({
               <TextInput label="Model" placeholder="Corolla" withAsterisk {...form.getInputProps('model')} />
             </Grid.Col>
             <Grid.Col span={{ base: 6, sm: 3 }}>
-              <NumberInput label="Year" min={1970} max={maxYear} allowDecimal={false} withAsterisk {...form.getInputProps('year')} />
+              <NumberInput label="Year" min={1980} max={maxYear} allowDecimal={false} withAsterisk {...form.getInputProps('year')} />
             </Grid.Col>
             <Grid.Col span={{ base: 6, sm: 3 }}>
               <NumberInput label="Seats" min={1} max={60} allowDecimal={false} withAsterisk {...form.getInputProps('seats')} />

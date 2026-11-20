@@ -9,6 +9,8 @@ import { me, requireAuth } from '../middleware/auth.js';
 import { sendPush } from '../services/push.js';
 import {
   BLOCKING_BOOKING_STATUSES,
+  BOOKABLE_LISTING,
+  isBookable,
   createBooking,
   loadBooking,
   loadListing,
@@ -36,7 +38,7 @@ rentalsRouter.get('/', async (req, res) => {
     })
     .parse(req.query);
 
-  const where: Prisma.RentalListingWhereInput = { status: 'APPROVED', isActive: true };
+  const where: Prisma.RentalListingWhereInput = { ...BOOKABLE_LISTING };
   if (q.placeId) where.placeId = q.placeId;
   if (q.seats) where.seats = { gte: q.seats };
   if (q.transmission) where.transmission = q.transmission;
@@ -57,7 +59,7 @@ rentalsRouter.get('/', async (req, res) => {
 rentalsRouter.get('/:id', async (req, res) => {
   const user = me(req);
   const listing = await loadListing(idParam(req.params.id));
-  const visible = listing.status === 'APPROVED' && listing.isActive;
+  const visible = isBookable(listing);
   if (!visible && listing.ownerId !== user.id && user.role !== 'ADMIN') throw notFound('Listing');
   const bookings = await prisma.rentalBooking.findMany({
     where: { listingId: listing.id, status: { in: BLOCKING_BOOKING_STATUSES }, endDate: { gt: todayUtc() } },

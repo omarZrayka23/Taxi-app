@@ -68,6 +68,9 @@ export const useAuth = create<AuthState>()((set, get) => ({
   },
 
   signOut: async () => {
+    // Stop push notifications for this account on this device. Fire-and-forget: the request captures the
+    // token synchronously, so it still authenticates after we clear it below, and an offline logout is not blocked.
+    if (get().token) authApi.updateMe({ expoPushToken: null }).catch(() => undefined);
     setAuthToken(null);
     await storage.remove(KEYS.token);
     await storage.set(KEYS.mode, 'passenger');

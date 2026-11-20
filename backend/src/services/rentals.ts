@@ -1,12 +1,22 @@
-import type { BookingStatus, RentalListing, RentalMode } from '@prisma/client';
+import type { BookingStatus, Prisma, RentalListing, RentalMode } from '@prisma/client';
 import { prisma } from '../db.js';
 import { AppError, badRequest, conflict, notFound } from '../lib/errors.js';
 import { daysBetween, parseDateOnly, todayUtc } from '../lib/dates.js';
 import { num, round2, toLbp } from '../lib/money.js';
 import { emitToUser } from './realtime.js';
 import { sendPush } from './push.js';
-import { bookingInclude, listingInclude, serializeBooking, type BookingFull } from './serializers.js';
+import { bookingInclude, listingInclude, serializeBooking, type BookingFull, type ListingFull } from './serializers.js';
 import { getSettings } from './settings.js';
+
+/** A car renters can see and book: approved, switched on, and its owner is still approved. */
+export const BOOKABLE_LISTING = {
+  status: 'APPROVED',
+  isActive: true,
+  owner: { ownerProfile: { is: { status: 'APPROVED' } } },
+} satisfies Prisma.RentalListingWhereInput;
+
+export const isBookable = (l: ListingFull) =>
+  l.status === 'APPROVED' && l.isActive && l.owner.ownerProfile?.status === 'APPROVED';
 
 /** Bookings in these states hold the car. */
 export const BLOCKING_BOOKING_STATUSES: BookingStatus[] = ['PENDING', 'CONFIRMED', 'ACTIVE'];
@@ -73,7 +83,7 @@ export async function createBooking(args: {
   note?: string;
 }) {
   const listing = await loadListing(args.listingId);
-  if (listing.status !== 'APPROVED' || !listing.isActive) throw notFound('Listing');
+  if (!isBookable(listing)) throw notFound('Listing');
   if (listing.ownerId === args.renterId) throw badRequest('OWN_LISTING', 'You cannot book your own car');
   const q = await quoteRental(listing, args.startDate, args.endDate, args.mode);
 

@@ -192,6 +192,7 @@ export interface Ride {
   status: RideStatus;
   vehicleType: VehicleType;
   vehicle: VehicleSummary;
+  driverGender: Gender | null;
   pricingMode: PricingMode;
   pickupLat: number;
   pickupLng: number;
@@ -278,6 +279,7 @@ export interface LedgerEntry {
   type: LedgerType;
   amountUsd: number;
   description: string;
+  method: PaymentMethod | null;
   rideId: number | null;
   bookingId: number | null;
   createdAt: string;
@@ -395,7 +397,7 @@ export interface ListingInput {
   fuelType: FuelType;
   color: string;
   placeId: number;
-  description?: string;
+  description?: string | null;
   selfDrive: boolean;
   pricePerDayUsd?: number | null;
   withDriver: boolean;

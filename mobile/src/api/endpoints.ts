@@ -40,7 +40,7 @@ export const authApi = {
   requestOtp: () => http.post<{ sent: boolean; devCode?: string }>('/auth/otp/request'),
   verifyOtp: (code: string) => http.post<{ user: User }>('/auth/otp/verify', { code }),
   me: () => http.get<{ user: User }>('/auth/me'),
-  updateMe: (body: { name?: string; email?: string; language?: Language; expoPushToken?: string }) =>
+  updateMe: (body: { name?: string; email?: string; language?: Language; expoPushToken?: string | null }) =>
     http.patch<{ user: User }>('/me', body),
 };
 

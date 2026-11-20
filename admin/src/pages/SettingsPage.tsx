@@ -37,6 +37,8 @@ const NUMERIC_KEYS: NumericKey[] = [
 
 const required = (v: number | string) => (v === '' || !Number.isFinite(Number(v)) ? 'Required' : null);
 const min = (m: number) => (v: number | string) => required(v) ?? (Number(v) < m ? `Must be ≥ ${m}` : null);
+const range = (lo: number, hi: number) => (v: number | string) =>
+  required(v) ?? (Number(v) < lo || Number(v) > hi ? `${lo}–${hi}` : null);
 const pct = (v: number | string) => required(v) ?? (Number(v) < 0 || Number(v) > 100 ? '0–100' : null);
 
 function Section({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -61,9 +63,9 @@ function SettingsForm({ settings }: { settings: Settings }) {
       rentalCommissionPercent: pct,
       lbpRate: min(1),
       maxDebtUsd: min(0),
-      searchRadiusKm: min(0.5),
-      offerTimeoutSec: min(15),
-      fareRoundingUsd: min(0),
+      searchRadiusKm: range(0.5, 100),
+      offerTimeoutSec: range(15, 600),
+      fareRoundingUsd: range(0, 10),
       supportPhone: (v) => (v.trim() ? null : 'Required'),
     },
   });
@@ -135,6 +137,7 @@ function SettingsForm({ settings }: { settings: Settings }) {
             description="Calculated fares are rounded up to a multiple of this (e.g. 0.5)"
             prefix="$"
             min={0}
+            max={10}
             step={0.25}
             decimalScale={2}
             {...form.getInputProps('fareRoundingUsd')}
@@ -142,12 +145,13 @@ function SettingsForm({ settings }: { settings: Settings }) {
         </Section>
 
         <Section title="Dispatch" description="How new ride requests are offered to drivers.">
-          <NumberInput label="Search radius" suffix=" km" min={0.5} decimalScale={2} {...form.getInputProps('searchRadiusKm')} />
+          <NumberInput label="Search radius" suffix=" km" min={0.5} max={100} decimalScale={2} {...form.getInputProps('searchRadiusKm')} />
           <NumberInput
             label="Offer timeout"
             description="Ride expires if no driver accepts within this time"
             suffix=" s"
             min={15}
+            max={600}
             allowDecimal={false}
             {...form.getInputProps('offerTimeoutSec')}
           />

@@ -29,7 +29,8 @@ import {
 import { colors, radius, spacing } from '@/theme';
 
 const FUELS: FuelType[] = ['GASOLINE', 'DIESEL', 'HYBRID', 'ELECTRIC'];
-const MAX_PHOTOS = 6;
+const MAX_PHOTOS = 12; // backend: at most 12 per car
+const MAX_PER_UPLOAD = 6; // backend: at most 6 per upload
 
 interface FormState {
   make: string;
@@ -188,10 +189,11 @@ function ListingForm({ listing }: { listing?: Listing }) {
       return;
     }
     try {
-      const files = await pickImages({ multiple: true, limit: remaining });
+      const limit = Math.min(remaining, MAX_PER_UPLOAD);
+      const files = await pickImages({ multiple: true, limit });
       if (!files.length) return;
       setPhotoBusy(true);
-      const { listing: l } = await ownerApi.uploadPhotos(listing.id, files.slice(0, remaining));
+      const { listing: l } = await ownerApi.uploadPhotos(listing.id, files.slice(0, limit));
       refresh(l);
     } catch (e) {
       Alert.alert(t('common.error'), e instanceof FileTooLargeError ? t('documents.tooLarge') : errorMessage(e));

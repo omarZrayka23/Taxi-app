@@ -163,7 +163,7 @@ function PlaceFormModal({ opened, place, onClose }: { opened: boolean; place: Pl
       nameAr: (v) => (v.trim() ? null : 'Required'),
       lat: (v) => (v !== '' && Math.abs(Number(v)) <= 90 ? null : 'Latitude between -90 and 90'),
       lng: (v) => (v !== '' && Math.abs(Number(v)) <= 180 ? null : 'Longitude between -180 and 180'),
-      radiusKm: (v) => (v !== '' && Number(v) > 0 ? null : 'Must be greater than 0'),
+      radiusKm: (v) => (v !== '' && Number(v) >= 0.1 && Number(v) <= 50 ? null : 'Between 0.1 and 50 km'),
     },
   });
 
@@ -212,7 +212,8 @@ function PlaceFormModal({ opened, place, onClose }: { opened: boolean; place: Pl
             label="Radius"
             description="Pickups/drop-offs within this distance match the place"
             suffix=" km"
-            min={0.05}
+            min={0.1}
+            max={50}
             step={0.5}
             decimalScale={2}
             withAsterisk

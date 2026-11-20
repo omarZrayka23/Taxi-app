@@ -50,11 +50,11 @@ export default function BookingDetail() {
       {b.status === 'CONFIRMED' && !isOwner ? (
         <Banner tone="success" icon="checkmark-circle" message={t('bookings.confirmedHint')} />
       ) : null}
-      {b.status === 'REJECTED' ? (
+      {b.status === 'REJECTED' || (b.status === 'CANCELLED' && b.rejectionReason) ? (
         <Banner
           tone="danger"
           icon="close-circle"
-          title={t('status.REJECTED')}
+          title={t(`status.${b.status}`)}
           message={b.rejectionReason ?? undefined}
         />
       ) : null}

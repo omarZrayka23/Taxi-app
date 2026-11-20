@@ -109,9 +109,12 @@ export default function BillingAccountPage() {
             <Button leftSection={<IconCash size={16} />} color="teal" onClick={() => setDialog('payment')}>
               Record payment
             </Button>
-            <Button leftSection={<IconCalendarPlus size={16} />} variant="light" onClick={() => setDialog('subscription')}>
-              Activate months
-            </Button>
+            {/* Subscriptions apply to drivers only; monthlyFeeUsd is null for owner-only accounts. */}
+            {query.data.monthlyFeeUsd !== null && (
+              <Button leftSection={<IconCalendarPlus size={16} />} variant="light" onClick={() => setDialog('subscription')}>
+                Activate months
+              </Button>
+            )}
             <Button leftSection={<IconAdjustments size={16} />} variant="default" onClick={() => setDialog('adjustment')}>
               Adjustment
             </Button>
