@@ -268,7 +268,7 @@
   },
   "driverApply": {
     "title": "Driver account",
-    "intro": "Drive with Cedra using your taxi or tuk-tuk. Fill in your vehicle details, then upload your documents for review.",
+    "intro": "Drive with Cedra using your own vehicle. Fill in your vehicle details, then upload your documents for review.",
     "vehicleType": "Vehicle type",
     "vehicle": "Vehicle",
     "make": "Make",
@@ -440,7 +440,7 @@
     "modeHint": "Once your driver or owner account is approved you can switch modes here.",
     "workWithUs": "Work with us",
     "becomeDriver": "Become a driver",
-    "becomeDriverHint": "Drive your taxi or tuk-tuk",
+    "becomeDriverHint": "Drive your own vehicle",
     "driverAccount": "Driver account",
     "becomeOwner": "Rent out your car",
     "becomeOwnerHint": "For individuals and agencies",
