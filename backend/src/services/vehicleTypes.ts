@@ -49,3 +49,20 @@ export const LEGACY_VEHICLE_TYPES: Record<'TAXI' | 'TUKTUK', Omit<Prisma.Vehicle
     baseFare: 0.5, perKm: 0.4, perMin: 0.03, minimumFare: 1,
   },
 };
+
+export const serializeVehicleType = (v: VehicleType, driverCount: number) => ({
+  code: v.code,
+  nameEn: v.nameEn,
+  nameAr: v.nameAr,
+  icon: v.icon,
+  capacity: v.capacity,
+  mode: v.mode,
+  baseFare: num(v.baseFare),
+  perKm: num(v.perKm),
+  perMin: num(v.perMin),
+  minimumFare: num(v.minimumFare),
+  monthlyFeeUsd: num(v.monthlyFeeUsd),
+  active: v.active,
+  sortOrder: v.sortOrder,
+  driverCount,
+});

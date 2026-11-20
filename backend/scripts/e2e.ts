@@ -287,8 +287,7 @@ async function main() {
 
     // ---------- admin config ----------
     await fails('DUPLICATE_ROUTE', 'POST', '/admin/route-fares', admin, { fromPlaceId: tripoli.id, toPlaceId: minieh.id, vehicleType: 'TAXI', priceUsd: 4, bidirectional: true });
-    // Admin vehicle-type API arrives in a later task; switch the pricing mode directly for now.
-    await prisma.vehicleType.update({ where: { code: 'TAXI' }, data: { mode: 'CALCULATED', baseFare: 1, perKm: 1, perMin: 0, minimumFare: 2 } });
+    await ok('PATCH', '/admin/vehicle-types/TAXI', admin, { mode: 'CALCULATED', baseFare: 1, perKm: 1, perMin: 0, minimumFare: 2 });
     const calc = await ok('POST', '/rides/estimate', P, { pickup: { lat: minieh.lat, lng: minieh.lng }, dropoff: { lat: tripoli.lat, lng: tripoli.lng } });
     assert.equal(calc.estimates.find((e: any) => e.vehicleType === 'TAXI').pricingMode, 'CALCULATED');
     await fails('PLACE_IN_USE', 'DELETE', `/admin/places/${minieh.id}`, admin);
@@ -344,6 +343,54 @@ async function main() {
     await ok('PATCH', `/admin/users/${wUserId}`, admin, { status: 'BLOCKED' });
     assert.equal((await estimate()).hasWomenDrivers, false, 'blocked woman driver must not count');
     log('gender: availability flags, woman-only/man-only dispatch, late online offer, accept guard, pending/blocked excluded');
+
+    // ---------- vehicle types ----------
+    const vt = { code: 'MINIBUS', nameEn: 'Minibus', nameAr: 'ميني باص', icon: 'VAN', capacity: 9, mode: 'CALCULATED',
+      baseFare: 2, perKm: 1, perMin: 0.1, minimumFare: 4, monthlyFeeUsd: 25 };
+    await fails('VALIDATION_ERROR', 'POST', '/admin/vehicle-types', admin, { ...vt, code: 'van 7' });
+    assert.equal((await ok('POST', '/admin/vehicle-types', admin, vt)).vehicleType.driverCount, 0);
+    await fails('VEHICLE_TYPE_EXISTS', 'POST', '/admin/vehicle-types', admin, vt);
+    const M = await reg('Driver Mounir', '71666666');
+    await ok('POST', '/driver/apply', M, {
+      vehicleType: 'MINIBUS', vehicleMake: 'Toyota', vehicleModel: 'Hiace', vehicleColor: 'White',
+      plateNumber: 'T 999999', licenseNumber: 'L-9', billingPlan: 'COMMISSION',
+    });
+    await ok('POST', '/documents', M, upload('DRIVER_LICENSE'));
+    const mPending = await ok('GET', '/admin/drivers?status=PENDING', admin);
+    await ok('POST', `/admin/drivers/${mPending.items[0].id}/approve`, admin);
+    await ok('POST', '/driver/online', M, { lat: minieh.lat, lng: minieh.lng });
+    assert.ok((await estimate()).estimates.some((x: any) => x.vehicleType === 'MINIBUS' && x.vehicle.capacity === 9));
+    const mr = (await ok('POST', '/rides', WP, { vehicleType: 'MINIBUS', pickup: at(minieh, 'A'), dropoff: at(tripoli, 'B') })).ride;
+    // Turn off while REQUESTED: the driver can still accept.
+    await ok('PATCH', '/admin/vehicle-types/MINIBUS', admin, { active: false });
+    await ok('POST', `/rides/${mr.id}/accept`, M);
+    assert.ok(!(await estimate()).estimates.some((x: any) => x.vehicleType === 'MINIBUS'));
+    assert.ok(!(await ok('GET', '/config')).vehicleTypes.some((v: any) => v.code === 'MINIBUS'));
+    await ok('POST', `/rides/${mr.id}/arrived`, M);
+    await ok('POST', `/rides/${mr.id}/start`, M);
+    await ok('POST', `/rides/${mr.id}/complete`, M);
+    await fails('INVALID_VEHICLE_TYPE', 'POST', '/rides', WP, { vehicleType: 'MINIBUS', pickup: at(minieh, 'A'), dropoff: at(tripoli, 'B') });
+    // History still shows the name.
+    assert.equal((await ok('GET', `/rides/${mr.id}`, WP)).ride.vehicle.nameEn, 'Minibus');
+    const listed = (await ok('GET', '/admin/vehicle-types', admin)).items.find((v: any) => v.code === 'MINIBUS');
+    assert.equal(listed.driverCount, 1);
+    assert.equal(listed.active, false);
+    await fails('VEHICLE_TYPE_IN_USE', 'DELETE', '/admin/vehicle-types/MINIBUS', admin);
+    // A route fare alone blocks delete.
+    await ok('POST', '/admin/vehicle-types', admin, { ...vt, code: 'SHUTTLE' });
+    await ok('POST', '/admin/route-fares', admin, { fromPlaceId: minieh.id, toPlaceId: tripoli.id, vehicleType: 'SHUTTLE', priceUsd: 6, bidirectional: true });
+    await fails('VEHICLE_TYPE_IN_USE', 'DELETE', '/admin/vehicle-types/SHUTTLE', admin);
+    await ok('POST', '/admin/vehicle-types', admin, { ...vt, code: 'TEMP' });
+    await ok('DELETE', '/admin/vehicle-types/TEMP', admin);
+    await fails('NOT_FOUND', 'PATCH', '/admin/vehicle-types/TEMP', admin, { active: true });
+    // No active types: empty estimates, not an error; monthly fees still come from inactive rows.
+    const activeCodes = (await ok('GET', '/admin/vehicle-types', admin)).items.filter((v: any) => v.active).map((v: any) => v.code);
+    for (const c of activeCodes) await ok('PATCH', `/admin/vehicle-types/${c}`, admin, { active: false });
+    assert.deepEqual((await estimate()).estimates, []);
+    assert.equal((await ok('GET', '/config')).monthlyFeeTaxiUsd, 30);
+    for (const c of activeCodes) await ok('PATCH', `/admin/vehicle-types/${c}`, admin, { active: true });
+    await fails('NOT_FOUND', 'GET', '/admin/pricing', admin);
+    log('vehicle types: create, validate, offer, turn off mid-ride, history name, delete guard, empty estimates');
 
     console.log('\nAll e2e scenarios passed.');
   } finally {

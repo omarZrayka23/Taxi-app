@@ -7,6 +7,7 @@ import { requireAdmin, requireAuth } from './middleware/auth.js';
 import { errorHandler, notFoundHandler } from './middleware/errors.js';
 import { adminBillingRouter } from './routes/admin/billing.js';
 import { adminConfigRouter } from './routes/admin/config.js';
+import { adminVehicleTypesRouter } from './routes/admin/vehicleTypes.js';
 import { adminManageRouter } from './routes/admin/manage.js';
 import { authRouter, meRouter } from './routes/auth.js';
 import { driverRouter } from './routes/driver.js';
@@ -43,6 +44,7 @@ export function createApp() {
   admin.use('/', adminManageRouter);
   admin.use('/', adminConfigRouter);
   admin.use('/billing', adminBillingRouter);
+  admin.use('/vehicle-types', adminVehicleTypesRouter);
   api.use('/admin', admin);
 
   app.use('/api', api);

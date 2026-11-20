@@ -61,7 +61,8 @@ ridesRouter.post('/', async (req, res) => {
   if (active) throw conflict('ACTIVE_RIDE_EXISTS', 'You already have an active ride');
 
   const { estimates, lbpRate } = await estimateFares(body.pickup, body.dropoff);
-  const est = estimates.find((e) => e.vehicleType === body.vehicleType)!;
+  const est = estimates.find((e) => e.vehicleType === body.vehicleType);
+  if (!est) throw badRequest('INVALID_VEHICLE_TYPE', 'Vehicle type is not available');
   const ride = await prisma.ride.create({
     data: {
       passengerId: user.id,

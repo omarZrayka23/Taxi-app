@@ -20,7 +20,7 @@ Base URL: `http://<host>:4000/api`. All bodies are JSON unless marked *multipart
 | UserRole | `USER`, `ADMIN` |
 | UserStatus | `ACTIVE`, `BLOCKED` |
 | Language | `ar`, `en` |
-| VehicleType | `TAXI`, `TUKTUK` |
+| VehicleIcon | `CAR`, `TUKTUK`, `MOTORCYCLE`, `VAN`, `BUS` |
 | PricingMode | `CALCULATED`, `FIXED_ROUTE` |
 | ApprovalStatus (driver/owner/listing) | `PENDING`, `APPROVED`, `REJECTED`, `SUSPENDED` (SUSPENDED: drivers only) |
 | BillingPlan | `COMMISSION`, `MONTHLY` |
@@ -46,19 +46,20 @@ User = {
   driverProfile: DriverProfile|null, ownerProfile: OwnerProfile|null
 }
 DriverProfile = {
-  id, userId, vehicleType, vehicleMake, vehicleModel, vehicleColor, plateNumber, licenseNumber,
+  id, userId, vehicleType /* code */, vehicle: VehicleSummary, vehicleMake, vehicleModel, vehicleColor, plateNumber, licenseNumber,
   status: ApprovalStatus, rejectionReason: string|null, billingPlan: BillingPlan,
   isOnline: boolean, lat: number|null, lng: number|null, ratingAvg: number, ratingCount: number, createdAt
 }
 OwnerProfile = { id, userId, type: OwnerType, businessName: string|null, status: ApprovalStatus, rejectionReason: string|null, createdAt }
 Document = { id, userId, type: DocumentType, url, createdAt }
+VehicleSummary = { code, nameEn, nameAr, icon: VehicleIcon, capacity }  // survives the type being turned off, so history keeps its name
 Place = { id, nameEn, nameAr, lat, lng, radiusKm, active: boolean }
 Ride = {
-  id, status: RideStatus, vehicleType, driverGender: Gender|null /* null = any driver */, pricingMode,
+  id, status: RideStatus, vehicleType /* code */, vehicle: VehicleSummary, driverGender: Gender|null /* null = any driver */, pricingMode,
   pickupLat, pickupLng, pickupAddress, dropoffLat, dropoffLng, dropoffAddress,
   distanceKm, durationMin, fareUsd, fareLbp, note: string|null,
   passenger: { id, name, phone },
-  driver: { id /* userId */, name, phone, vehicleType, vehicleMake, vehicleModel, vehicleColor,
+  driver: { id /* userId */, name, phone, vehicleType, vehicle: VehicleSummary, vehicleMake, vehicleModel, vehicleColor,
             plateNumber, ratingAvg, lat, lng } | null,
   requestedAt, acceptedAt, arrivedAt, startedAt, completedAt, cancelledAt,   // null when not reached
   cancelledBy: CancelledBy|null, cancelReason: string|null,
@@ -103,7 +104,7 @@ Phone format: Lebanese, stored normalized as `+961XXXXXXXX`; clients may send `0
 | Method | Path | Response |
 |---|---|---|
 | GET | `/health` | `{ ok: true }` |
-| GET | `/config` | `{ lbpRate, commissionPercent, rentalCommissionPercent, monthlyFeeTaxiUsd, monthlyFeeTuktukUsd, supportPhone, vehicleTypes: [{ type, mode, baseFare, perKm, perMin, minimumFare }] }` |
+| GET | `/config` | `{ lbpRate, commissionPercent, rentalCommissionPercent, monthlyFeeTaxiUsd, monthlyFeeTuktukUsd, supportPhone, vehicleTypes: [{ type /* = code */, code, nameEn, nameAr, icon, capacity, monthlyFeeUsd, mode, baseFare, perKm, perMin, minimumFare }] }` (`vehicleTypes` lists active types only; the two monthly fees read the TAXI / TUKTUK rows even when inactive, 0 if missing) |
 | GET | `/places` | `{ places: Place[] }` (active only) |
 
 ## Documents (auth)
@@ -117,8 +118,8 @@ Phone format: Lebanese, stored normalized as `+961XXXXXXXX`; clients may send `0
 
 | Method | Path | Body | Response |
 |---|---|---|---|
-| POST | `/rides/estimate` | `{ pickup: {lat,lng}, dropoff: {lat,lng} }` | `{ estimates: [{ vehicleType, fareUsd, fareLbp, pricingMode, distanceKm, durationMin, fromPlace: Place\|null, toPlace: Place\|null, womanDriverNearby: boolean }], hasWomenDrivers: boolean }` (one per vehicle type; `hasWomenDrivers` = an approved, active woman driver is registered; `womanDriverNearby` = one is online, free and within the search radius of pickup) |
-| POST | `/rides` | `{ vehicleType, pickup: {lat,lng,address}, dropoff: {lat,lng,address}, note?, driverGender?: 'MALE'\|'FEMALE' }` (with `driverGender`, the ride is offered to and can be accepted only by drivers of that gender) | `{ ride }` (409 `ACTIVE_RIDE_EXISTS`) |
+| POST | `/rides/estimate` | `{ pickup: {lat,lng}, dropoff: {lat,lng} }` | `{ estimates: [{ vehicleType, vehicle: VehicleSummary, fareUsd, fareLbp, pricingMode, distanceKm, durationMin, fromPlace: Place\|null, toPlace: Place\|null, womanDriverNearby: boolean }], hasWomenDrivers: boolean }` (one per active vehicle type, `[]` when none is active; `hasWomenDrivers` = an approved, active woman driver is registered; `womanDriverNearby` = one is online, free and within the search radius of pickup) |
+| POST | `/rides` | `{ vehicleType, pickup: {lat,lng,address}, dropoff: {lat,lng,address}, note?, driverGender?: 'MALE'\|'FEMALE' }` (with `driverGender`, the ride is offered to and can be accepted only by drivers of that gender) | `{ ride }` (409 `ACTIVE_RIDE_EXISTS`; 400 `INVALID_VEHICLE_TYPE` if unknown or turned off) |
 | GET | `/rides/current` | — | `{ ride: Ride\|null }` |
 | GET | `/rides` | paginated | `Ride[]` page (own, newest first) |
 | GET | `/rides/:id` | — | `{ ride }` (passenger, assigned driver or admin) |
@@ -191,8 +192,10 @@ Admins automatically have an approved `PLATFORM` owner profile, so the admin pan
 | GET | `/admin/rides` | `?status&page` | `Ride[]` page |
 | POST | `/admin/rides/:id/cancel` | `{ reason? }` | `{ ride }` |
 | GET | `/admin/bookings` | `?status&page` | `Booking[]` page |
-| GET | `/admin/pricing` | — | `{ vehicleTypes: [{ type, mode, baseFare, perKm, perMin, minimumFare }] }` |
-| PUT | `/admin/pricing/:vehicleType` | `{ mode, baseFare, perKm, perMin, minimumFare }` | `{ pricing }` |
+| GET | `/admin/vehicle-types` | — | `{ items: AdminVehicleType[] }` (all types incl. inactive, sorted by `sortOrder`, `code`) |
+| POST | `/admin/vehicle-types` | `{ code (A-Z, 0-9, _; starts with a letter; max 20), nameEn (1-60), nameAr (1-60), icon: VehicleIcon, capacity (1-100), mode: PricingMode, baseFare, perKm, perMin, minimumFare, monthlyFeeUsd, active?, sortOrder? }` | 201 `{ vehicleType }` (409 `VEHICLE_TYPE_EXISTS`) |
+| PATCH | `/admin/vehicle-types/:code` | partial of the POST body without `code` | `{ vehicleType }` (404 if unknown) |
+| DELETE | `/admin/vehicle-types/:code` | — | `{ ok: true }` (409 `VEHICLE_TYPE_IN_USE` if any driver, ride or route fare uses it; turn it off instead) |
 | GET | `/admin/places` | — | `{ places }` (incl. inactive) |
 | POST | `/admin/places` | `{ nameEn, nameAr, lat, lng, radiusKm, active? }` | `{ place }` |
 | PATCH | `/admin/places/:id` | partial | `{ place }` |
@@ -201,7 +204,7 @@ Admins automatically have an approved `PLATFORM` owner profile, so the admin pan
 | POST | `/admin/route-fares` | `{ fromPlaceId, toPlaceId, vehicleType, priceUsd, bidirectional }` | `{ routeFare }` (409 `DUPLICATE_ROUTE`) |
 | PATCH | `/admin/route-fares/:id` | partial | `{ routeFare }` |
 | DELETE | `/admin/route-fares/:id` | — | `{ ok: true }` |
-| GET | `/admin/settings` | — | `{ commissionPercent, rentalCommissionPercent, monthlyFeeTaxiUsd, monthlyFeeTuktukUsd, lbpRate, maxDebtUsd, searchRadiusKm, offerTimeoutSec, fareRoundingUsd, supportPhone }` |
+| GET | `/admin/settings` | — | `{ commissionPercent, rentalCommissionPercent, lbpRate, maxDebtUsd, searchRadiusKm, offerTimeoutSec, fareRoundingUsd, supportPhone }` |
 | PUT | `/admin/settings` | partial of the above | same shape |
 | GET | `/admin/billing/accounts` | `?search&page` | page of `{ user: {id,name,phone}, kinds: ('DRIVER'\|'OWNER')[], billingPlan: BillingPlan\|null, balanceUsd, subscription: Subscription\|null }` |
 | GET | `/admin/billing/accounts/:userId` | — | `{ user, balanceUsd, subscription, entries: LedgerEntry[] }` |
@@ -232,6 +235,7 @@ Client → server:
 
 ## Business rules (summary)
 
+- **Vehicle types**: managed by the admin (`AdminVehicleType = { code, nameEn, nameAr, icon, capacity, mode, baseFare, perKm, perMin, minimumFare, monthlyFeeUsd, active, sortOrder, driverCount }`, money as numbers). Turning a type off hides it from `/config`, estimates and new rides and driver applications; existing rides and drivers keep it, and a ride already `REQUESTED` can still be accepted.
 - **Pricing**: for each vehicle type the admin chooses `CALCULATED` or `FIXED_ROUTE`.
   - Calculated: `max(minimumFare, baseFare + perKm·km + perMin·min)` rounded up to `fareRoundingUsd`.
   - Fixed route: pickup and dropoff are matched to the nearest active Place whose radius contains them; if a RouteFare exists for (from, to, vehicleType) — or (to, from) when `bidirectional` — that price is used. Otherwise fall back to calculated.

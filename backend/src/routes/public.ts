@@ -16,8 +16,9 @@ publicRouter.get('/health', (_req, res) => {
 });
 
 publicRouter.get('/config', async (_req, res) => {
-  const [s, types] = await Promise.all([getSettings(), listVehicleTypes({ activeOnly: true })]);
-  const feeOf = (code: string) => num(types.find((t) => t.code === code)?.monthlyFeeUsd ?? 0);
+  const [s, all] = await Promise.all([getSettings(), listVehicleTypes()]);
+  const types = all.filter((t) => t.active);
+  const feeOf = (code: string) => num(all.find((t) => t.code === code)?.monthlyFeeUsd ?? 0);
   res.json({
     lbpRate: s.lbpRate,
     commissionPercent: s.commissionPercent,
