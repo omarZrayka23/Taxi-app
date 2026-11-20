@@ -22,9 +22,12 @@ enum UserStatus {
   BLOCKED
 }
 
-enum VehicleType {
-  TAXI
+enum VehicleIcon {
+  CAR
   TUKTUK
+  MOTORCYCLE
+  VAN
+  BUS
 }
 
 enum PricingMode {
@@ -145,7 +148,8 @@ model DriverProfile {
   id              Int            @id @default(autoincrement())
   userId          Int            @unique
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicleType     VehicleType
+  vehicleType     String         @db.VarChar(20)
+  vehicle         VehicleType    @relation(fields: [vehicleType], references: [code])
   vehicleMake     String         @db.VarChar(60)
   vehicleModel    String         @db.VarChar(60)
   vehicleColor    String         @db.VarChar(40)
@@ -208,7 +212,8 @@ model RouteFare {
   fromPlace     Place       @relation("RouteFrom", fields: [fromPlaceId], references: [id], onDelete: Cascade)
   toPlaceId     Int
   toPlace       Place       @relation("RouteTo", fields: [toPlaceId], references: [id], onDelete: Cascade)
-  vehicleType   VehicleType
+  vehicleType   String      @db.VarChar(20)
+  vehicle       VehicleType @relation(fields: [vehicleType], references: [code])
   priceUsd      Decimal     @db.Decimal(10, 2)
   bidirectional Boolean     @default(true)
   createdAt     DateTime    @default(now())
@@ -216,14 +221,26 @@ model RouteFare {
   @@unique([fromPlaceId, toPlaceId, vehicleType])
 }
 
-model PricingRule {
-  vehicleType VehicleType @id
-  mode        PricingMode @default(CALCULATED)
-  baseFare    Decimal     @db.Decimal(10, 2)
-  perKm       Decimal     @db.Decimal(10, 2)
-  perMin      Decimal     @db.Decimal(10, 2)
-  minimumFare Decimal     @db.Decimal(10, 2)
-  updatedAt   DateTime    @updatedAt
+model VehicleType {
+  code          String      @id @db.VarChar(20)
+  nameEn        String      @db.VarChar(60)
+  nameAr        String      @db.VarChar(60)
+  icon          VehicleIcon
+  capacity      Int
+  mode          PricingMode @default(CALCULATED)
+  baseFare      Decimal     @db.Decimal(10, 2)
+  perKm         Decimal     @db.Decimal(10, 2)
+  perMin        Decimal     @db.Decimal(10, 2)
+  minimumFare   Decimal     @db.Decimal(10, 2)
+  monthlyFeeUsd Decimal     @default(0) @db.Decimal(10, 2)
+  active        Boolean     @default(true)
+  sortOrder     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  drivers    DriverProfile[]
+  rides      Ride[]
+  routeFares RouteFare[]
 }
 
 model Setting {
@@ -237,7 +254,8 @@ model Ride {
   passenger        User         @relation("PassengerRides", fields: [passengerId], references: [id])
   driverId         Int?
   driver           User?        @relation("DriverRides", fields: [driverId], references: [id])
-  vehicleType      VehicleType
+  vehicleType      String       @db.VarChar(20)
+  vehicle          VehicleType  @relation(fields: [vehicleType], references: [code])
   driverGender     Gender?
   pricingMode      PricingMode
   status           RideStatus   @default(REQUESTED)

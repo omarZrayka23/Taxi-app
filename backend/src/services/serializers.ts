@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import type {
   Document,
   DriverProfile,
+  VehicleType,
   LedgerEntry,
   OwnerProfile,
   Place,
@@ -10,15 +11,17 @@ import type {
 } from '@prisma/client';
 import { formatDateOnly } from '../lib/dates.js';
 import { num, numOrNull, toLbp } from '../lib/money.js';
+import { vehicleSummary } from './vehicleTypes.js';
 
 // ---------- include shapes (keep queries and serializers in sync) ----------
 
-export const userInclude = { driverProfile: true, ownerProfile: true } satisfies Prisma.UserInclude;
+export const userInclude = { driverProfile: { include: { vehicle: true } }, ownerProfile: true } satisfies Prisma.UserInclude;
 export type UserFull = Prisma.UserGetPayload<{ include: typeof userInclude }>;
 
 export const rideInclude = {
   passenger: true,
-  driver: { include: { driverProfile: true } },
+  vehicle: true,
+  driver: { include: { driverProfile: { include: { vehicle: true } } } },
 } satisfies Prisma.RideInclude;
 export type RideFull = Prisma.RideGetPayload<{ include: typeof rideInclude }>;
 
@@ -37,10 +40,11 @@ export type BookingFull = Prisma.RentalBookingGetPayload<{ include: typeof booki
 
 // ---------- serializers ----------
 
-export const serializeDriverProfile = (d: DriverProfile, ratingAvg = 0, ratingCount = 0) => ({
+export const serializeDriverProfile = (d: DriverProfile & { vehicle: VehicleType }, ratingAvg = 0, ratingCount = 0) => ({
   id: d.id,
   userId: d.userId,
   vehicleType: d.vehicleType,
+  vehicle: vehicleSummary(d.vehicle),
   vehicleMake: d.vehicleMake,
   vehicleModel: d.vehicleModel,
   vehicleColor: d.vehicleColor,
@@ -103,6 +107,7 @@ export const serializeRide = (r: RideFull) => {
     id: r.id,
     status: r.status,
     vehicleType: r.vehicleType,
+    vehicle: vehicleSummary(r.vehicle),
     driverGender: r.driverGender,
     pricingMode: r.pricingMode,
     pickupLat: r.pickupLat,

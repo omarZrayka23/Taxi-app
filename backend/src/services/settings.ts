@@ -3,8 +3,6 @@ import { prisma } from '../db.js';
 export const DEFAULT_SETTINGS = {
   commissionPercent: 10,
   rentalCommissionPercent: 10,
-  monthlyFeeTaxiUsd: 30,
-  monthlyFeeTuktukUsd: 15,
   lbpRate: 89500,
   maxDebtUsd: 20,
   searchRadiusKm: 5,
@@ -43,6 +41,3 @@ export async function updateSettings(patch: Partial<Settings>): Promise<Settings
   cache = null;
   return getSettings();
 }
-
-export const monthlyFeeFor = (s: Settings, vehicleType: 'TAXI' | 'TUKTUK') =>
-  vehicleType === 'TAXI' ? s.monthlyFeeTaxiUsd : s.monthlyFeeTuktukUsd;

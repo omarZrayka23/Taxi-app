@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
+import { num } from '../lib/money.js';
+import { requireVehicleType, vehicleCode } from '../services/vehicleTypes.js';
 import { conflict, forbidden, notFound } from '../lib/errors.js';
 import { latLng, pageArgs, pagination } from '../lib/validate.js';
 import { me, requireAuth } from '../middleware/auth.js';
@@ -13,7 +15,7 @@ import {
   serializeRide,
   serializeSubscription,
 } from '../services/serializers.js';
-import { getSettings, monthlyFeeFor } from '../services/settings.js';
+import { getSettings } from '../services/settings.js';
 
 export const driverRouter = Router();
 driverRouter.use(requireAuth);
@@ -21,13 +23,13 @@ driverRouter.use(requireAuth);
 const billingPlan = z.enum(['COMMISSION', 'MONTHLY']);
 
 async function serializeMyProfile(userId: number) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { driverProfile: true } });
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { driverProfile: { include: { vehicle: true } } } });
   if (!user.driverProfile) throw notFound('Driver profile');
   return serializeDriverProfile(user.driverProfile, user.ratingAvg, user.ratingCount);
 }
 
 async function requireProfile(userId: number) {
-  const profile = await prisma.driverProfile.findUnique({ where: { userId } });
+  const profile = await prisma.driverProfile.findUnique({ where: { userId }, include: { vehicle: true } });
   if (!profile) throw forbidden('You have not applied as a driver', 'NOT_A_DRIVER');
   return profile;
 }
@@ -36,7 +38,7 @@ driverRouter.post('/apply', async (req, res) => {
   const user = me(req);
   const body = z
     .object({
-      vehicleType: z.enum(['TAXI', 'TUKTUK']),
+      vehicleType: vehicleCode,
       vehicleMake: z.string().trim().min(1).max(60),
       vehicleModel: z.string().trim().min(1).max(60),
       vehicleColor: z.string().trim().min(1).max(40),
@@ -45,6 +47,7 @@ driverRouter.post('/apply', async (req, res) => {
       billingPlan,
     })
     .parse(req.body);
+  await requireVehicleType(body.vehicleType, { active: true });
   const existing = await prisma.driverProfile.findUnique({ where: { userId: user.id } });
   if (existing && existing.status !== 'REJECTED') {
     throw conflict('ALREADY_APPLIED', `Your driver application is ${existing.status.toLowerCase()}`);
@@ -142,7 +145,7 @@ driverRouter.get('/billing', async (req, res) => {
     subscription: serializeSubscription(subscription),
     ledger: ledger.map(serializeLedgerEntry),
     commissionPercent: settings.commissionPercent,
-    monthlyFeeUsd: monthlyFeeFor(settings, profile.vehicleType),
+    monthlyFeeUsd: num(profile.vehicle.monthlyFeeUsd),
     maxDebtUsd: settings.maxDebtUsd,
   });
 });

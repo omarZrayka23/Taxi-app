@@ -3,16 +3,16 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../db.js';
 import { badRequest, notFound } from '../../lib/errors.js';
+import { num } from '../../lib/money.js';
 import { idParam, pageArgs, pagination } from '../../lib/validate.js';
 import { me } from '../../middleware/auth.js';
 import { activateSubscription, addLedgerEntry, balanceOf, balancesOf, latestSubscription } from '../../services/billing.js';
 import { sendPush } from '../../services/push.js';
 import { serializeLedgerEntry, serializeSubscription, userSummary } from '../../services/serializers.js';
-import { getSettings, monthlyFeeFor } from '../../services/settings.js';
 
 export const adminBillingRouter = Router();
 
-const accountInclude = { driverProfile: true, ownerProfile: true } satisfies Prisma.UserInclude;
+const accountInclude = { driverProfile: { include: { vehicle: true } }, ownerProfile: true } satisfies Prisma.UserInclude;
 
 adminBillingRouter.get('/accounts', async (req, res) => {
   const q = pagination.extend({ search: z.string().trim().optional() }).parse(req.query);
@@ -94,8 +94,7 @@ adminBillingRouter.post('/accounts/:userId/subscription', async (req, res) => {
   const user = await loadAccountUser(idParam(req.params.userId));
   if (!user.driverProfile) throw badRequest('NOT_A_DRIVER', 'Subscriptions apply to drivers only');
   const { months } = z.object({ months: z.coerce.number().int().min(1).max(12) }).parse(req.body);
-  const settings = await getSettings();
-  const subscription = await activateSubscription(user.id, months, monthlyFeeFor(settings, user.driverProfile.vehicleType), me(req).id);
+  const subscription = await activateSubscription(user.id, months, num(user.driverProfile.vehicle.monthlyFeeUsd), me(req).id);
   sendPush(user.id, 'Subscription active', `Your subscription runs until ${subscription.periodEnd.toISOString().slice(0, 10)}.`);
   res.status(201).json({ subscription: serializeSubscription(subscription), balanceUsd: await balanceOf(user.id) });
 });

@@ -99,7 +99,7 @@ adminManageRouter.patch('/users/:id', async (req, res) => {
 
 // ---------- drivers ----------
 
-const driverInclude = { user: true } satisfies Prisma.DriverProfileInclude;
+const driverInclude = { user: true, vehicle: true } satisfies Prisma.DriverProfileInclude;
 type DriverWithUser = Prisma.DriverProfileGetPayload<{ include: typeof driverInclude }>;
 const serializeDriverRow = (d: DriverWithUser) => ({
   ...serializeDriverProfile(d, d.user.ratingAvg, d.user.ratingCount),

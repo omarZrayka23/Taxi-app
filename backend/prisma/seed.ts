@@ -5,9 +5,10 @@
  */
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
-import { PrismaClient, type VehicleType } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import { normalizeLebanesePhone } from '../src/lib/phone.js';
 import { DEFAULT_SETTINGS } from '../src/services/settings.js';
+import { LEGACY_VEHICLE_TYPES } from '../src/services/vehicleTypes.js';
 
 const prisma = new PrismaClient();
 
@@ -45,16 +46,16 @@ async function main() {
     await prisma.setting.upsert({ where: { key }, create: { key, value: String(value) }, update: {} });
   }
 
-  const rules: Record<VehicleType, { baseFare: number; perKm: number; perMin: number; minimumFare: number }> = {
-    TAXI: { baseFare: 1, perKm: 0.6, perMin: 0.05, minimumFare: 2 },
-    TUKTUK: { baseFare: 0.5, perKm: 0.4, perMin: 0.03, minimumFare: 1 },
-  };
-  for (const [vehicleType, r] of Object.entries(rules) as [VehicleType, (typeof rules)[VehicleType]][]) {
-    await prisma.pricingRule.upsert({
-      where: { vehicleType },
-      create: { vehicleType, mode: 'FIXED_ROUTE', ...r },
-      update: {},
-    });
+  const vehicleTypes: Prisma.VehicleTypeCreateInput[] = [
+    { ...LEGACY_VEHICLE_TYPES.TAXI, mode: 'FIXED_ROUTE', monthlyFeeUsd: 30, sortOrder: 1 },
+    { ...LEGACY_VEHICLE_TYPES.TUKTUK, mode: 'FIXED_ROUTE', monthlyFeeUsd: 15, sortOrder: 2 },
+    { code: 'MOTORCYCLE', nameEn: 'Motorcycle', nameAr: 'دراجة نارية', icon: 'MOTORCYCLE', capacity: 1, baseFare: 0.5, perKm: 0.3, perMin: 0.02, minimumFare: 1, monthlyFeeUsd: 10, sortOrder: 3 },
+    { code: 'VAN_7', nameEn: 'Van 7', nameAr: 'فان ٧ ركاب', icon: 'VAN', capacity: 7, baseFare: 2, perKm: 0.9, perMin: 0.07, minimumFare: 4, monthlyFeeUsd: 40, sortOrder: 4 },
+    { code: 'VAN_11', nameEn: 'Van 11', nameAr: 'فان ١١ راكب', icon: 'VAN', capacity: 11, baseFare: 3, perKm: 1.2, perMin: 0.09, minimumFare: 6, monthlyFeeUsd: 50, sortOrder: 5 },
+    { code: 'BUS', nameEn: 'Bus', nameAr: 'باص', icon: 'BUS', capacity: 20, baseFare: 5, perKm: 1.8, perMin: 0.12, minimumFare: 10, monthlyFeeUsd: 60, sortOrder: 6 },
+  ];
+  for (const v of vehicleTypes) {
+    await prisma.vehicleType.upsert({ where: { code: v.code }, create: v, update: {} });
   }
 
   const ids = {} as Record<PlaceKey, number>;
@@ -64,7 +65,7 @@ async function main() {
   }
 
   for (const [from, to, taxi, tuktuk] of ROUTES) {
-    const prices: [VehicleType, number | null][] = [
+    const prices: [string, number | null][] = [
       ['TAXI', taxi],
       ['TUKTUK', tuktuk],
     ];

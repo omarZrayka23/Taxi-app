@@ -1,4 +1,4 @@
-import type { PricingMode, VehicleType } from '@prisma/client';
+import type { PricingMode } from '@prisma/client';
 import { haversineKm, type LatLng } from '../lib/geo.js';
 import { roundUpTo } from '../lib/money.js';
 
@@ -21,7 +21,7 @@ export interface PlaceLike {
 export interface RouteFareLike {
   fromPlaceId: number;
   toPlaceId: number;
-  vehicleType: VehicleType;
+  vehicleType: string;
   priceUsd: number;
   bidirectional: boolean;
 }
@@ -49,7 +49,7 @@ export function matchPlace<P extends PlaceLike>(point: LatLng, places: P[]): P |
 export function findRouteFare<R extends RouteFareLike>(
   fromId: number,
   toId: number,
-  vehicleType: VehicleType,
+  vehicleType: string,
   fares: R[],
 ): R | null {
   const direct = fares.find((f) => f.vehicleType === vehicleType && f.fromPlaceId === fromId && f.toPlaceId === toId);
@@ -73,7 +73,7 @@ export interface FareQuote<P> {
  * places and a route price exists; otherwise it falls back to the calculated fare.
  */
 export function quoteFare<P extends PlaceLike, R extends RouteFareLike>(args: {
-  vehicleType: VehicleType;
+  vehicleType: string;
   rates: Rates;
   pickup: LatLng;
   dropoff: LatLng;

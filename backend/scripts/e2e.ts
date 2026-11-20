@@ -116,7 +116,10 @@ async function main() {
     log('register requires gender; user cannot change own gender; admin can');
 
     const config = await ok('GET', '/config');
-    assert.equal(config.vehicleTypes.length, 2);
+    assert.equal(config.vehicleTypes.length, 6);
+    assert.equal(config.vehicleTypes[0].code, 'TAXI');
+    assert.equal(config.vehicleTypes[0].type, 'TAXI');
+    assert.equal(config.monthlyFeeTaxiUsd, 30);
     const places = (await ok('GET', '/places')).places as any[];
     const minieh = places.find((p) => p.nameEn === 'Minieh');
     const tripoli = places.find((p) => p.nameEn === 'Tripoli');
@@ -146,6 +149,7 @@ async function main() {
     const taxiEst = est.estimates.find((e: any) => e.vehicleType === 'TAXI');
     assert.equal(taxiEst.pricingMode, 'FIXED_ROUTE');
     assert.equal(taxiEst.fareUsd, 5);
+    assert.equal(taxiEst.vehicle.capacity, 4);
     assert.equal(taxiEst.fareLbp, 5 * config.lbpRate);
     const offFar = await ok('POST', '/rides/estimate', P, { pickup: { lat: 34.0, lng: 35.7 }, dropoff: { lat: 34.05, lng: 35.72 } });
     assert.equal(offFar.estimates[0].pricingMode, 'CALCULATED');
@@ -160,7 +164,11 @@ async function main() {
         dropoff: { lat: tripoli.lat, lng: tripoli.lng, address: 'Tripoli, Tell' },
       })
     ).ride;
+    assert.equal(ride.vehicle.nameEn, 'Taxi');
     assert.equal((await offer).ride.id, ride.id);
+    await fails('INVALID_VEHICLE_TYPE', 'POST', '/rides', P, {
+      vehicleType: 'NOPE', pickup: { lat: 1, lng: 1, address: 'a' }, dropoff: { lat: 1, lng: 1, address: 'b' },
+    });
     await fails('ACTIVE_RIDE_EXISTS', 'POST', '/rides', P, {
       vehicleType: 'TAXI', pickup: { lat: 1, lng: 1, address: 'a' }, dropoff: { lat: 1, lng: 1, address: 'b' },
     });
@@ -279,7 +287,8 @@ async function main() {
 
     // ---------- admin config ----------
     await fails('DUPLICATE_ROUTE', 'POST', '/admin/route-fares', admin, { fromPlaceId: tripoli.id, toPlaceId: minieh.id, vehicleType: 'TAXI', priceUsd: 4, bidirectional: true });
-    await ok('PUT', '/admin/pricing/TAXI', admin, { mode: 'CALCULATED', baseFare: 1, perKm: 1, perMin: 0, minimumFare: 2 });
+    // Admin vehicle-type API arrives in a later task; switch the pricing mode directly for now.
+    await prisma.vehicleType.update({ where: { code: 'TAXI' }, data: { mode: 'CALCULATED', baseFare: 1, perKm: 1, perMin: 0, minimumFare: 2 } });
     const calc = await ok('POST', '/rides/estimate', P, { pickup: { lat: minieh.lat, lng: minieh.lng }, dropoff: { lat: tripoli.lat, lng: tripoli.lng } });
     assert.equal(calc.estimates.find((e: any) => e.vehicleType === 'TAXI').pricingMode, 'CALCULATED');
     await fails('PLACE_IN_USE', 'DELETE', `/admin/places/${minieh.id}`, admin);

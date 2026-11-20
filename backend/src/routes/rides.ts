@@ -21,11 +21,11 @@ import {
   transitionRide,
 } from '../services/rides.js';
 import { rideInclude, serializeRide } from '../services/serializers.js';
+import { requireVehicleType, vehicleCode } from '../services/vehicleTypes.js';
 
 export const ridesRouter = Router();
 ridesRouter.use(requireAuth);
 
-const vehicleType = z.enum(['TAXI', 'TUKTUK']);
 const point = latLng.extend({ address: z.string().trim().min(1).max(255) });
 
 ridesRouter.post('/estimate', async (req, res) => {
@@ -44,13 +44,15 @@ ridesRouter.post('/', async (req, res) => {
   const user = me(req);
   const body = z
     .object({
-      vehicleType,
+      vehicleType: vehicleCode,
       pickup: point,
       dropoff: point,
       note: z.string().trim().max(300).optional(),
       driverGender: z.enum(['MALE', 'FEMALE']).optional(),
     })
     .parse(req.body);
+
+  await requireVehicleType(body.vehicleType, { active: true });
 
   const active = await prisma.ride.findFirst({
     where: { passengerId: user.id, status: { in: ACTIVE_RIDE_STATUSES } },

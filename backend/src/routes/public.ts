@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { prisma } from '../db.js';
 import { me, requireAuth } from '../middleware/auth.js';
 import { documentUpload, publicUrl } from '../services/uploads.js';
-import { getPricingRules } from '../services/pricingData.js';
+import { ratesOf, listVehicleTypes } from '../services/vehicleTypes.js';
+import { num } from '../lib/money.js';
 import { serializeDocument, serializePlace } from '../services/serializers.js';
 import { getSettings } from '../services/settings.js';
 import { badRequest } from '../lib/errors.js';
@@ -15,15 +16,25 @@ publicRouter.get('/health', (_req, res) => {
 });
 
 publicRouter.get('/config', async (_req, res) => {
-  const s = await getSettings();
+  const [s, types] = await Promise.all([getSettings(), listVehicleTypes({ activeOnly: true })]);
+  const feeOf = (code: string) => num(types.find((t) => t.code === code)?.monthlyFeeUsd ?? 0);
   res.json({
     lbpRate: s.lbpRate,
     commissionPercent: s.commissionPercent,
     rentalCommissionPercent: s.rentalCommissionPercent,
-    monthlyFeeTaxiUsd: s.monthlyFeeTaxiUsd,
-    monthlyFeeTuktukUsd: s.monthlyFeeTuktukUsd,
+    monthlyFeeTaxiUsd: feeOf('TAXI'),
+    monthlyFeeTuktukUsd: feeOf('TUKTUK'),
     supportPhone: s.supportPhone,
-    vehicleTypes: await getPricingRules(),
+    vehicleTypes: types.map((v) => ({
+      type: v.code,
+      code: v.code,
+      nameEn: v.nameEn,
+      nameAr: v.nameAr,
+      icon: v.icon,
+      capacity: v.capacity,
+      monthlyFeeUsd: num(v.monthlyFeeUsd),
+      ...ratesOf(v),
+    })),
   });
 });
 

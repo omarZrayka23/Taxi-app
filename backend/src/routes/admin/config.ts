@@ -5,29 +5,11 @@ import { prisma } from '../../db.js';
 import { badRequest, conflict, notFound } from '../../lib/errors.js';
 import { num } from '../../lib/money.js';
 import { idParam, money } from '../../lib/validate.js';
-import { getPricingRules } from '../../services/pricingData.js';
 import { serializePlace } from '../../services/serializers.js';
+import { requireVehicleType, vehicleCode } from '../../services/vehicleTypes.js';
 import { DEFAULT_SETTINGS, getSettings, updateSettings } from '../../services/settings.js';
 
 export const adminConfigRouter = Router();
-
-const vehicleType = z.enum(['TAXI', 'TUKTUK']);
-
-// ---------- pricing ----------
-
-adminConfigRouter.get('/pricing', async (_req, res) => {
-  res.json({ vehicleTypes: await getPricingRules() });
-});
-
-adminConfigRouter.put('/pricing/:vehicleType', async (req, res) => {
-  const type = vehicleType.parse(req.params.vehicleType);
-  const body = z
-    .object({ mode: z.enum(['CALCULATED', 'FIXED_ROUTE']), baseFare: money, perKm: money, perMin: money, minimumFare: money })
-    .parse(req.body);
-  await prisma.pricingRule.upsert({ where: { vehicleType: type }, create: { vehicleType: type, ...body }, update: body });
-  const pricing = (await getPricingRules()).find((r) => r.type === type);
-  res.json({ pricing });
-});
 
 // ---------- places ----------
 
@@ -79,12 +61,12 @@ const serializeRouteFare = (r: RouteFareFull) => ({
 const routeFareBody = z.object({
   fromPlaceId: z.coerce.number().int().positive(),
   toPlaceId: z.coerce.number().int().positive(),
-  vehicleType,
+  vehicleType: vehicleCode,
   priceUsd: money,
   bidirectional: z.boolean().default(true),
 });
 
-async function assertNoDuplicate(data: { fromPlaceId: number; toPlaceId: number; vehicleType: 'TAXI' | 'TUKTUK'; bidirectional: boolean }, exceptId?: number) {
+async function assertNoDuplicate(data: { fromPlaceId: number; toPlaceId: number; vehicleType: string; bidirectional: boolean }, exceptId?: number) {
   if (data.fromPlaceId === data.toPlaceId) throw badRequest('VALIDATION_ERROR', 'From and to places must differ');
   const clash = await prisma.routeFare.findFirst({
     where: {
@@ -109,6 +91,7 @@ adminConfigRouter.get('/route-fares', async (_req, res) => {
 
 adminConfigRouter.post('/route-fares', async (req, res) => {
   const body = routeFareBody.parse(req.body);
+  await requireVehicleType(body.vehicleType, { active: false });
   await assertNoDuplicate(body);
   const routeFare = await prisma.routeFare.create({ data: body, include: routeFareInclude });
   res.status(201).json({ routeFare: serializeRouteFare(routeFare) });
@@ -119,6 +102,7 @@ adminConfigRouter.patch('/route-fares/:id', async (req, res) => {
   const current = await prisma.routeFare.findUnique({ where: { id } });
   if (!current) throw notFound('Route fare');
   const body = routeFareBody.partial().parse(req.body);
+  if (body.vehicleType) await requireVehicleType(body.vehicleType, { active: false });
   await assertNoDuplicate(
     {
       fromPlaceId: body.fromPlaceId ?? current.fromPlaceId,
@@ -144,8 +128,6 @@ const settingsBody = z
   .object({
     commissionPercent: pct,
     rentalCommissionPercent: pct,
-    monthlyFeeTaxiUsd: money,
-    monthlyFeeTuktukUsd: money,
     lbpRate: z.coerce.number().int().min(1),
     maxDebtUsd: money,
     searchRadiusKm: z.coerce.number().min(0.5).max(100),
