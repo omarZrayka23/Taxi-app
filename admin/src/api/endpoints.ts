@@ -4,6 +4,7 @@ import type {
   AdminDriver,
   AdminDriverDetail,
   AdminDriverListItem,
+  AdminVehicleType,
   AdminOwner,
   AdminOwnerDetail,
   AdminStats,
@@ -20,7 +21,6 @@ import type {
   PaymentMethod,
   Place,
   PlaceInput,
-  PricingInput,
   Ride,
   RideStatus,
   RouteFare,
@@ -29,8 +29,7 @@ import type {
   Subscription,
   User,
   UserStatus,
-  VehiclePricing,
-  VehicleType,
+  VehicleTypeInput,
 } from './types';
 
 export const PAGE_SIZE = 20;
@@ -90,9 +89,11 @@ export const adminApi = {
   bookings: (params: { status?: BookingStatus | null; page: number }) =>
     api.get<Page<Booking>>('/admin/bookings', { status: params.status, ...pageQuery(params.page) }),
 
-  pricing: () => api.get<{ vehicleTypes: VehiclePricing[] }>('/admin/pricing'),
-  updatePricing: (type: VehicleType, body: PricingInput) =>
-    api.put<{ pricing: VehiclePricing }>(`/admin/pricing/${type}`, body),
+  vehicleTypes: () => api.get<{ items: AdminVehicleType[] }>('/admin/vehicle-types'),
+  createVehicleType: (body: VehicleTypeInput) => api.post<{ vehicleType: AdminVehicleType }>('/admin/vehicle-types', body),
+  updateVehicleType: (code: string, body: Partial<Omit<VehicleTypeInput, 'code'>>) =>
+    api.patch<{ vehicleType: AdminVehicleType }>(`/admin/vehicle-types/${code}`, body),
+  deleteVehicleType: (code: string) => api.delete<{ ok: true }>(`/admin/vehicle-types/${code}`),
 
   places: () => api.get<{ places: Place[] }>('/admin/places'),
   createPlace: (body: PlaceInput) => api.post<{ place: Place }>('/admin/places', body),

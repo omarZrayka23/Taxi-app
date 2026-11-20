@@ -5,7 +5,7 @@ import { adminApi } from '../api/endpoints';
 export const keys = {
   places: ['admin', 'places'] as const,
   settings: ['admin', 'settings'] as const,
-  pricing: ['admin', 'pricing'] as const,
+  vehicleTypes: ['admin', 'vehicle-types'] as const,
   routeFares: ['admin', 'route-fares'] as const,
   platformListings: ['owner', 'listings'] as const,
 };
@@ -17,4 +17,9 @@ export function usePlaces() {
 
 export function useSettings() {
   return useQuery({ queryKey: keys.settings, queryFn: adminApi.settings });
+}
+
+/** All vehicle types (including inactive), sorted by the server. */
+export function useVehicleTypes() {
+  return useQuery({ queryKey: keys.vehicleTypes, queryFn: async () => (await adminApi.vehicleTypes()).items });
 }

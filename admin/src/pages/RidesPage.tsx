@@ -10,13 +10,14 @@ import { InfoGrid, PageHeader, PersonCell, SectionTitle } from '../components/La
 import { ErrorState, LoadingState } from '../components/QueryState';
 import { ReasonModal } from '../components/ReasonModal';
 import { StatusBadge } from '../components/StatusBadge';
+import { VehicleBadge } from '../components/VehicleBadge';
 import { formatDateTime, formatLbp, formatNumber, formatUsd, humanize } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
 
 const columns: Column<Ride>[] = [
   { key: 'id', title: '#', render: (r) => <Text size="sm" c="dimmed">#{r.id}</Text>, width: 70 },
   { key: 'when', title: 'Requested', render: (r) => formatDateTime(r.requestedAt) },
-  { key: 'type', title: 'Type', render: (r) => <StatusBadge value={r.vehicleType} /> },
+  { key: 'type', title: 'Type', render: (r) => <VehicleBadge code={r.vehicleType} /> },
   {
     key: 'route',
     title: 'Route',
@@ -109,7 +110,7 @@ function RideDrawer({ initial, onClose }: { initial: Ride | null; onClose: () =>
           <Group justify="space-between">
             <Group gap={6}>
               <StatusBadge value={r.status} />
-              <StatusBadge value={r.vehicleType} />
+              <VehicleBadge code={r.vehicleType} />
               <StatusBadge value={r.pricingMode} />
             </Group>
             {ACTIVE_RIDE_STATUSES.includes(r.status) && (

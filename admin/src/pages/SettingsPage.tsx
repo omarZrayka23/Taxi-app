@@ -28,8 +28,6 @@ type Values = { [K in NumericKey]: number | string } & { supportPhone: string };
 const NUMERIC_KEYS: NumericKey[] = [
   'commissionPercent',
   'rentalCommissionPercent',
-  'monthlyFeeTaxiUsd',
-  'monthlyFeeTuktukUsd',
   'lbpRate',
   'maxDebtUsd',
   'searchRadiusKm',
@@ -61,8 +59,6 @@ function SettingsForm({ settings }: { settings: Settings }) {
     validate: {
       commissionPercent: pct,
       rentalCommissionPercent: pct,
-      monthlyFeeTaxiUsd: min(0),
-      monthlyFeeTuktukUsd: min(0),
       lbpRate: min(1),
       maxDebtUsd: min(0),
       searchRadiusKm: min(0.5),
@@ -114,9 +110,7 @@ function SettingsForm({ settings }: { settings: Settings }) {
           />
         </Section>
 
-        <Section title="Monthly plan" description="Fees for drivers on the Monthly plan, charged when you activate months.">
-          <NumberInput label="Monthly fee — Taxi" prefix="$" min={0} decimalScale={2} {...form.getInputProps('monthlyFeeTaxiUsd')} />
-          <NumberInput label="Monthly fee — Tuk-tuk" prefix="$" min={0} decimalScale={2} {...form.getInputProps('monthlyFeeTuktukUsd')} />
+        <Section title="Monthly plan" description="Debt limit for drivers. Monthly fees are set per vehicle type under Vehicle types.">
           <NumberInput
             label="Maximum debt"
             description="Drivers owing more than this cannot go online"

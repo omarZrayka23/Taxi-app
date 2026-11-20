@@ -18,6 +18,7 @@ import { InfoGrid, PageHeader, PersonCell, SectionTitle } from '../components/La
 import { QueryState } from '../components/QueryState';
 import { ReasonModal } from '../components/ReasonModal';
 import { StatusBadge } from '../components/StatusBadge';
+import { VehicleBadge } from '../components/VehicleBadge';
 import { formatDate, formatDateTime, formatUsd } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
 
@@ -31,7 +32,7 @@ const columns: Column<AdminDriverListItem>[] = [
     render: (d) => (
       <Stack gap={2}>
         <Group gap={6}>
-          <StatusBadge value={d.vehicleType} />
+          <VehicleBadge code={d.vehicleType} />
           <Text size="sm">
             {d.vehicleMake} {d.vehicleModel}
           </Text>
@@ -206,7 +207,7 @@ function DriverDrawer({ driverId, onClose }: { driverId: number | null; onClose:
               <SectionTitle>Vehicle</SectionTitle>
               <InfoGrid
                 items={[
-                  { label: 'Type', value: <StatusBadge value={driver.vehicleType} /> },
+                  { label: 'Type', value: <VehicleBadge code={driver.vehicleType} /> },
                   { label: 'Make / model', value: `${driver.vehicleMake} ${driver.vehicleModel}` },
                   { label: 'Color', value: driver.vehicleColor },
                   { label: 'Plate', value: driver.plateNumber },

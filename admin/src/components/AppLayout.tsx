@@ -26,7 +26,7 @@ const NAV = [
   { to: '/listings', label: 'Rental listings', icon: IconCar },
   { to: '/rides', label: 'Rides', icon: IconRoad },
   { to: '/bookings', label: 'Rental bookings', icon: IconCalendarEvent },
-  { to: '/pricing', label: 'Pricing', icon: IconCurrencyDollar },
+  { to: '/vehicle-types', label: 'Vehicle types', icon: IconCurrencyDollar },
   { to: '/places', label: 'Places', icon: IconMapPin },
   { to: '/route-fares', label: 'Route fares', icon: IconRoute },
   { to: '/billing', label: 'Billing', icon: IconReceipt2 },

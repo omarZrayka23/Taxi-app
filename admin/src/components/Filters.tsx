@@ -11,17 +11,19 @@ interface StatusFilterProps<S extends string> {
   value: S | null;
   onChange: (value: S | null) => void;
   allLabel?: string;
+  /** Label for an option; defaults to humanising the value. */
+  optionLabel?: (option: S) => string;
 }
 
 /** Segmented "All / STATUS_A / STATUS_B" filter. `null` means all. */
-export function StatusFilter<S extends string>({ options, value, onChange, allLabel = 'All' }: StatusFilterProps<S>) {
+export function StatusFilter<S extends string>({ options, value, onChange, allLabel = 'All', optionLabel }: StatusFilterProps<S>) {
   return (
     <ScrollArea type="never" maw="100%">
       <SegmentedControl
         size="sm"
         value={value ?? ALL}
         onChange={(v) => onChange(v === ALL ? null : (v as S))}
-        data={[{ value: ALL, label: allLabel }, ...options.map((o) => ({ value: o, label: humanize(o) }))]}
+        data={[{ value: ALL, label: allLabel }, ...options.map((o) => ({ value: o, label: optionLabel ? optionLabel(o) : humanize(o) }))]}
       />
     </ScrollArea>
   );

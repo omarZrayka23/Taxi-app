@@ -21,8 +21,6 @@ const COLORS: Record<string, MantineColor> = {
   // bookings
   CONFIRMED: 'blue',
   // misc
-  TAXI: 'yellow',
-  TUKTUK: 'grape',
   CALCULATED: 'blue',
   FIXED_ROUTE: 'violet',
   COMMISSION: 'blue',

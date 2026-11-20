@@ -7,15 +7,15 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { adminApi } from '../api/endpoints';
-import { VEHICLE_TYPES, type RouteFare, type RouteFareInput, type VehicleType } from '../api/types';
+import type { RouteFare, RouteFareInput, VehicleType } from '../api/types';
 import { DataTable, type Column } from '../components/DataTable';
 import { StatusFilter } from '../components/Filters';
 import { PageHeader } from '../components/Layout';
 import { QueryState } from '../components/QueryState';
-import { StatusBadge } from '../components/StatusBadge';
-import { formatLbp, formatUsd, humanize, usdToLbp } from '../lib/format';
+import { VehicleBadge } from '../components/VehicleBadge';
+import { formatLbp, formatUsd, usdToLbp } from '../lib/format';
 import { useApiMutation } from '../lib/notify';
-import { keys, usePlaces, useSettings } from '../lib/queries';
+import { keys, usePlaces, useSettings, useVehicleTypes } from '../lib/queries';
 
 const duplicateText = (err: unknown) =>
   err instanceof ApiError && err.code === 'DUPLICATE_ROUTE'
@@ -25,7 +25,12 @@ const duplicateText = (err: unknown) =>
 export default function RouteFaresPage() {
   const query = useQuery({ queryKey: keys.routeFares, queryFn: async () => (await adminApi.routeFares()).items });
   const settings = useSettings();
+  const vehicleTypes = useVehicleTypes();
   const lbpRate = settings.data?.lbpRate;
+  const vehicleName = (code: string) => {
+    const t = vehicleTypes.data?.find((x) => x.code === code);
+    return t ? (t.active ? t.nameEn : `${t.nameEn} (off)`) : code;
+  };
   const [vehicleType, setVehicleType] = useState<VehicleType | null>(null);
   const [editing, setEditing] = useState<RouteFare | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -41,7 +46,7 @@ export default function RouteFaresPage() {
       title: 'Delete route fare?',
       children: (
         <Text size="sm">
-          {r.fromPlace.nameEn} → {r.toPlace.nameEn} ({humanize(r.vehicleType)}). Rides on this route will use the calculated
+          {r.fromPlace.nameEn} → {r.toPlace.nameEn} ({vehicleName(r.vehicleType)}). Rides on this route will use the calculated
           fare.
         </Text>
       ),
@@ -66,7 +71,7 @@ export default function RouteFaresPage() {
         </Group>
       ),
     },
-    { key: 'type', title: 'Vehicle', render: (r) => <StatusBadge value={r.vehicleType} /> },
+    { key: 'type', title: 'Vehicle', render: (r) => <VehicleBadge code={r.vehicleType} /> },
     { key: 'usd', title: 'Price (USD)', align: 'right', render: (r) => <Text size="sm" fw={600}>{formatUsd(r.priceUsd)}</Text> },
     {
       key: 'lbp',
@@ -114,7 +119,7 @@ export default function RouteFaresPage() {
         description={
           <>
             Fixed prices between two <Link to="/places">places</Link>. Used only for vehicle types whose{' '}
-            <Link to="/pricing">pricing mode</Link> is Fixed route.
+            <Link to="/vehicle-types">pricing mode</Link> is Fixed route.
           </>
         }
         actions={
@@ -130,7 +135,12 @@ export default function RouteFaresPage() {
         }
       />
       <Group mb="md" justify="space-between" wrap="wrap">
-        <StatusFilter options={VEHICLE_TYPES} value={vehicleType} onChange={setVehicleType} />
+        <StatusFilter
+          options={(vehicleTypes.data ?? []).map((t) => t.code)}
+          optionLabel={vehicleName}
+          value={vehicleType}
+          onChange={setVehicleType}
+        />
         <Text size="sm" c="dimmed">
           {lbpRate ? `LBP rate: 1 USD = ${formatLbp(lbpRate)}` : settings.isLoading ? 'Loading LBP rate…' : 'LBP rate unavailable'}
         </Text>
@@ -174,6 +184,7 @@ function RouteFareFormModal({
   onClose: () => void;
 }) {
   const places = usePlaces();
+  const vehicleTypes = useVehicleTypes();
   const form = useForm<Values>({
     initialValues: EMPTY,
     validate: {
@@ -236,7 +247,7 @@ function RouteFareFormModal({
           <Select label="To" data={options} searchable withAsterisk placeholder="Destination place" {...form.getInputProps('toPlaceId')} />
           <Select
             label="Vehicle type"
-            data={VEHICLE_TYPES.map((t) => ({ value: t, label: humanize(t) }))}
+            data={(vehicleTypes.data ?? []).map((t) => ({ value: t.code, label: t.active ? t.nameEn : `${t.nameEn} (off)` }))}
             allowDeselect={false}
             {...form.getInputProps('vehicleType')}
           />

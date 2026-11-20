@@ -9,7 +9,7 @@ import OwnersPage from './pages/OwnersPage';
 import ListingsPage from './pages/ListingsPage';
 import RidesPage from './pages/RidesPage';
 import BookingsPage from './pages/BookingsPage';
-import PricingPage from './pages/PricingPage';
+import VehicleTypesPage from './pages/VehicleTypesPage';
 import PlacesPage from './pages/PlacesPage';
 import RouteFaresPage from './pages/RouteFaresPage';
 import BillingPage from './pages/BillingPage';
@@ -41,7 +41,8 @@ export default function App() {
         <Route path="listings" element={<ListingsPage />} />
         <Route path="rides" element={<RidesPage />} />
         <Route path="bookings" element={<BookingsPage />} />
-        <Route path="pricing" element={<PricingPage />} />
+        <Route path="vehicle-types" element={<VehicleTypesPage />} />
+        <Route path="pricing" element={<Navigate to="/vehicle-types" replace />} />
         <Route path="places" element={<PlacesPage />} />
         <Route path="route-fares" element={<RouteFaresPage />} />
         <Route path="billing" element={<BillingPage />} />

@@ -11,8 +11,11 @@ export const LANGUAGES = ['ar', 'en'] as const;
 export type Language = (typeof LANGUAGES)[number];
 export type Gender = 'MALE' | 'FEMALE';
 
-export const VEHICLE_TYPES = ['TAXI', 'TUKTUK'] as const;
-export type VehicleType = (typeof VEHICLE_TYPES)[number];
+/** Vehicle type code (admin-managed, e.g. TAXI, VAN_8). */
+export type VehicleType = string;
+
+export const VEHICLE_ICONS = ['CAR', 'TUKTUK', 'MOTORCYCLE', 'VAN', 'BUS'] as const;
+export type VehicleIcon = (typeof VEHICLE_ICONS)[number];
 
 export const PRICING_MODES = ['CALCULATED', 'FIXED_ROUTE'] as const;
 export type PricingMode = (typeof PRICING_MODES)[number];
@@ -96,10 +99,19 @@ export interface UserRef {
 }
 
 // ---------- Objects ----------
+export interface VehicleSummary {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  icon: VehicleIcon;
+  capacity: number;
+}
+
 export interface DriverProfile {
   id: number;
   userId: number;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   vehicleMake: string;
   vehicleModel: string;
   vehicleColor: string;
@@ -165,6 +177,7 @@ export interface RideDriver {
   name: string;
   phone: string;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   vehicleMake: string;
   vehicleModel: string;
   vehicleColor: string;
@@ -178,6 +191,7 @@ export interface Ride {
   id: number;
   status: RideStatus;
   vehicleType: VehicleType;
+  vehicle: VehicleSummary;
   pricingMode: PricingMode;
   pickupLat: number;
   pickupLng: number;
@@ -277,13 +291,21 @@ export interface Subscription {
   active: boolean;
 }
 
-export interface VehiclePricing {
-  type: VehicleType;
+export interface AdminVehicleType {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  icon: VehicleIcon;
+  capacity: number;
   mode: PricingMode;
   baseFare: number;
   perKm: number;
   perMin: number;
   minimumFare: number;
+  monthlyFeeUsd: number;
+  active: boolean;
+  sortOrder: number;
+  driverCount: number;
 }
 
 export interface RouteFare {
@@ -298,8 +320,6 @@ export interface RouteFare {
 export interface Settings {
   commissionPercent: number;
   rentalCommissionPercent: number;
-  monthlyFeeTaxiUsd: number;
-  monthlyFeeTuktukUsd: number;
   lbpRate: number;
   maxDebtUsd: number;
   searchRadiusKm: number;
@@ -400,4 +420,7 @@ export interface RouteFareInput {
   bidirectional: boolean;
 }
 
-export type PricingInput = Omit<VehiclePricing, 'type'>;
+export type VehicleTypeInput = Omit<AdminVehicleType, 'driverCount' | 'active' | 'sortOrder'> & {
+  active?: boolean;
+  sortOrder?: number;
+};
